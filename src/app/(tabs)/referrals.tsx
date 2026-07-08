@@ -17,10 +17,21 @@ export default function ReferralsScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null);
 
-  const filteredReferrals = MOCK_REFERRALS.filter(ref => {
-    return ref.name.toLowerCase().includes(searchQuery.toLowerCase()) || ref.role.toLowerCase().includes(searchQuery.toLowerCase());
+  let filteredReferrals = MOCK_REFERRALS.filter(ref => {
+    const matchesFilter = activeFilter === 'All' || ref.status === activeFilter;
+    const matchesSearch = ref.name.toLowerCase().includes(searchQuery.toLowerCase()) || ref.role.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
   });
+
+  if (sortOrder) {
+    filteredReferrals = filteredReferrals.sort((a, b) => {
+      if (sortOrder === 'asc') return a.name.localeCompare(b.name);
+      return b.name.localeCompare(a.name);
+    });
+  }
 
   return (
     <View style={styles.container}>
@@ -58,11 +69,23 @@ export default function ReferralsScreen() {
 
           {showFilters && (
             <View style={styles.filterMenu}>
+              <Text style={styles.filterMenuTitle}>Sort By Name</Text>
+              <View style={styles.filterMenuOptions}>
+                <TouchableOpacity style={styles.filterMenuBtn} onPress={() => { setSortOrder('asc'); setShowFilters(false); }}>
+                  <Text style={[styles.filterMenuBtnText, sortOrder === 'asc' && { color: '#4F46E5', fontWeight: 'bold' }]}>A -> Z</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.filterMenuBtn} onPress={() => { setSortOrder('desc'); setShowFilters(false); }}>
+                  <Text style={[styles.filterMenuBtnText, sortOrder === 'desc' && { color: '#4F46E5', fontWeight: 'bold' }]}>Z -> A</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.menuDivider} />
+
               <Text style={styles.filterMenuTitle}>Filter By Status</Text>
               <View style={styles.filterMenuOptions}>
-                {['Pending', 'Accepted', 'Declined', 'No Response'].map(f => (
-                  <TouchableOpacity key={f} style={styles.filterMenuBtn}>
-                    <Text style={styles.filterMenuBtnText}>{f}</Text>
+                {['All', 'Pending', 'Accepted', 'Declined', 'No Response'].map(f => (
+                  <TouchableOpacity key={f} style={styles.filterMenuBtn} onPress={() => { setActiveFilter(f); setShowFilters(false); }}>
+                    <Text style={[styles.filterMenuBtnText, activeFilter === f && { color: '#4F46E5', fontWeight: 'bold' }]}>{f}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -72,6 +95,7 @@ export default function ReferralsScreen() {
 
         {/* List Items */}
         <FlatList
+          style={{ flex: 1 }}
           data={filteredReferrals}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
@@ -115,17 +139,19 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 220,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+    height: 180,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   safeArea: {
     flex: 1,
+
   },
   fixedHeaderContent: {
     paddingHorizontal: 20,
     paddingTop: 10,
-    marginBottom: 20,
+    marginBottom: 30,
+    zIndex: 10,
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -157,34 +183,49 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   filterMenu: {
+    position: 'absolute',
+    top: 130, // Right under the search bar
+    right: 20,
+    width: 200,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 12,
+    borderRadius: 8,
+    paddingVertical: 8,
+    zIndex: 1000,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
   },
   filterMenuTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-    marginBottom: 12,
-    color: '#111827',
+    color: '#94A3B8',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginVertical: 4,
   },
   filterMenuOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    flexDirection: 'column',
   },
   filterMenuBtn: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   filterMenuBtnText: {
-    fontSize: 12,
-    color: '#4B5563',
+    fontSize: 15,
+    color: '#1E293B',
+    fontWeight: '500',
   },
   listContent: {
     paddingHorizontal: 20,
+    paddingTop: 10,
     paddingBottom: 100, // For floating tab bar
   },
   referralCard: {

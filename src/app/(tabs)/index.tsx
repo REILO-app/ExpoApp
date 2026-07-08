@@ -4,7 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-
+import { BlurView } from 'expo-blur';
 const FILTERS = ['All', 'Pending', 'Accepted', 'Declined', 'No Response'];
 
 const MOCK_REFERRALS = [
@@ -34,14 +34,18 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#0F172A', '#1E293B', '#1E1B4B']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.headerBackground}
-      />
+      <View style={styles.headerBackground}>
+        <LinearGradient
+          colors={['#080d18ff', '#080d18ff', '#1E293B', '#1E1B4B']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <BlurView intensity={20} tint="dark" style={styles.indigoGlow} />
+        <BlurView intensity={20} tint="dark" style={styles.emeraldGlow} />
+      </View>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        
+
         {/* Fixed Top Section */}
         <View style={styles.fixedHeaderContent}>
           {/* Header */}
@@ -64,7 +68,7 @@ export default function DashboardScreen() {
           {/* Search */}
           <View style={styles.searchContainer}>
             <Feather name="search" size={18} color="rgba(199, 210, 254, 0.6)" style={styles.searchIcon} />
-            <TextInput 
+            <TextInput
               style={styles.searchInput}
               placeholder="Find a referral..."
               placeholderTextColor="rgba(199, 210, 254, 0.6)"
@@ -82,7 +86,7 @@ export default function DashboardScreen() {
                 <Text style={styles.statsBadgeText}>+12%</Text>
               </View>
             </View>
-            
+
             <View style={styles.statsRowWrapper}>
               <View style={styles.statItem}>
                 <Text style={[styles.statLabel, { color: '#94A3B8' }]}>Total</Text>
@@ -110,8 +114,8 @@ export default function DashboardScreen() {
           <View style={styles.filtersContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersContent}>
               {FILTERS.map(filter => (
-                <TouchableOpacity 
-                  key={filter} 
+                <TouchableOpacity
+                  key={filter}
                   style={[styles.filterPill, activeFilter === filter && styles.filterPillActive]}
                   onPress={() => setActiveFilter(filter)}
                 >
@@ -137,12 +141,12 @@ export default function DashboardScreen() {
                 </View>
                 <View style={[styles.statusDot, { borderColor: '#FFFFFF', backgroundColor: item.dotColor }]} />
               </View>
-              
+
               <View style={styles.referralInfo}>
                 <Text style={styles.referralName}>{item.name}</Text>
                 <Text style={styles.referralRole} numberOfLines={1}>{item.role}</Text>
               </View>
-              
+
               <View style={styles.referralRight}>
                 <Text style={styles.referralTime}>{item.time}</Text>
                 <View style={[styles.statusPill, { backgroundColor: item.statusBg, borderColor: item.statusBorder, borderWidth: 1 }]}>
@@ -167,9 +171,28 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 320,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+    height: 280,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    overflow: 'hidden',
+  },
+  indigoGlow: {
+    position: 'absolute',
+    top: -120,
+    right: -130,
+    width: 256,
+    height: 256,
+    borderRadius: 128,
+    backgroundColor: 'rgba(99, 102, 241, 0.18)',
+  },
+  emeraldGlow: {
+    position: 'absolute',
+    bottom: -60,
+    left: -50,
+    width: 192,
+    height: 192,
+    borderRadius: 96,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
   },
   safeArea: {
     flex: 1,
@@ -356,7 +379,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 100, // For floating tab bar
+    paddingBottom: 100,
   },
   listHeader: {
     marginBottom: 8,
