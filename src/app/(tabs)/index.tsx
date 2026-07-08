@@ -8,12 +8,11 @@ import { useRouter } from 'expo-router';
 const FILTERS = ['All', 'Pending', 'Accepted', 'Declined', 'No Response'];
 
 const MOCK_REFERRALS = [
-  { id: '1', name: 'Nitin Pansare', role: 'Assoc. Director Quality at Emerson', time: '2h', status: 'Accepted', statusColor: '#059669', statusBg: '#D1FAE5' },
-  { id: '2', name: 'Yogesh', role: 'Software Developer at Amazon', time: '1d', status: 'Accepted', statusColor: '#059669', statusBg: '#D1FAE5' },
-  { id: '3', name: 'Bhavik Mer', role: 'Vice President at Bank of America', status: 'Pending', statusColor: '#D97706', statusBg: '#FEF3C7' },
-  { id: '4', name: 'Ajay Joshi', role: 'Global Tech Lead at Citi Bank', status: 'No Response', statusColor: '#6B7280', statusBg: '#F3F4F6' },
-  { id: '5', name: 'Giridhar Sivaramakrishnan', role: 'Scrum Master at Bank of America', status: 'Declined', statusColor: '#DC2626', statusBg: '#FEE2E2' },
-  { id: '6', name: 'John Doe', role: 'Software Engineer at Google', time: '2d', status: 'Accepted', statusColor: '#059669', statusBg: '#D1FAE5' },
+  { id: '1', name: 'Nitin Pansare', role: 'Assoc. Director', time: '2h', status: 'Accepted', statusColor: '#059669', statusBg: '#ECFDF5', statusBorder: '#D1FAE5', dotColor: '#10B981' },
+  { id: '2', name: 'Yogesh', role: 'Software Dev', time: '1d', status: 'Accepted', statusColor: '#059669', statusBg: '#ECFDF5', statusBorder: '#D1FAE5', dotColor: '#10B981' },
+  { id: '3', name: 'Bhavik Mer', role: 'VP Engineering', time: '3d', status: 'Pending', statusColor: '#D97706', statusBg: '#FFFBEB', statusBorder: '#FEF3C7', dotColor: '#FBBF24' },
+  { id: '4', name: 'Ajay Joshi', role: 'Global Tech Lead', time: '4d', status: 'No Response', statusColor: '#64748B', statusBg: '#F8FAFC', statusBorder: '#E2E8F0', dotColor: '#CBD5E1' },
+  { id: '5', name: 'Giridhar S.', role: 'Software Dev', time: '1w', status: 'Declined', statusColor: '#E11D48', statusBg: '#FFF1F2', statusBorder: '#FFE4E6', dotColor: '#F43F5E' },
 ];
 
 export default function DashboardScreen() {
@@ -29,14 +28,16 @@ export default function DashboardScreen() {
 
   const renderHeader = () => (
     <View style={styles.listHeader}>
-      <Text style={styles.listTitle}>Recently Added Referrals</Text>
+      <Text style={styles.listTitle}>Recent Referrals</Text>
     </View>
   );
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#1F2937', '#111827', '#0F172A']}
+        colors={['#0F172A', '#1E293B', '#1E1B4B']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={styles.headerBackground}
       />
       <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -50,22 +51,23 @@ export default function DashboardScreen() {
                 <Feather name="user" size={24} color="#8E9BB3" />
               </View>
               <View>
-                <Text style={styles.greeting}>Good Morning</Text>
+                <Text style={styles.greeting}>Welcome back</Text>
                 <Text style={styles.userName}>Prasad Pansare</Text>
               </View>
             </View>
             <TouchableOpacity style={styles.bellIcon} onPress={() => router.push('/notifications')}>
-              <Feather name="bell" size={20} color="#1A223B" />
+              <Feather name="bell" size={20} color="#FFFFFF" />
+              <View style={styles.bellBadge} />
             </TouchableOpacity>
           </View>
 
           {/* Search */}
           <View style={styles.searchContainer}>
-            <Feather name="search" size={18} color="#8E9BB3" style={styles.searchIcon} />
+            <Feather name="search" size={18} color="rgba(199, 210, 254, 0.6)" style={styles.searchIcon} />
             <TextInput 
               style={styles.searchInput}
-              placeholder="Search for a referral..."
-              placeholderTextColor="#8E9BB3"
+              placeholder="Find a referral..."
+              placeholderTextColor="rgba(199, 210, 254, 0.6)"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -73,21 +75,33 @@ export default function DashboardScreen() {
 
           {/* Stats Card */}
           <View style={styles.statsCard}>
-            <Text style={styles.statsTitle}>Networking Overview</Text>
-            <View style={styles.statsRow}>
+            <View style={styles.statsHeader}>
+              <Text style={styles.statsTitle}>Network Overview</Text>
+              <View style={styles.statsBadge}>
+                <Feather name="trending-up" size={12} color="#059669" />
+                <Text style={styles.statsBadgeText}>+12%</Text>
+              </View>
+            </View>
+            
+            <View style={styles.statsRowWrapper}>
               <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Total Referrals</Text>
-                <Text style={styles.statValue}>8</Text>
+                <Text style={[styles.statLabel, { color: '#94A3B8' }]}>Total</Text>
+                <Text style={[styles.statValue, { color: '#0F172A' }]}>248</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Approved</Text>
-                <Text style={styles.statValue}>8</Text>
+                <Text style={[styles.statLabel, { color: '#818CF8' }]}>Active</Text>
+                <Text style={[styles.statValue, { color: '#4F46E5' }]}>142</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Pending</Text>
-                <Text style={styles.statValue}>8</Text>
+                <Text style={[styles.statLabel, { color: '#F59E0B' }]}>Pending</Text>
+                <Text style={[styles.statValue, { color: '#F59E0B' }]}>38</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={[styles.statLabel, { color: '#10B981' }]}>Success</Text>
+                <Text style={[styles.statValue, { color: '#10B981' }]}>18%</Text>
               </View>
             </View>
           </View>
@@ -117,19 +131,22 @@ export default function DashboardScreen() {
           ListHeaderComponent={renderHeader}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.referralCard} onPress={() => router.push(`/referral/${item.id}`)}>
-              <View style={styles.referralAvatarPlaceholder}>
-                <Feather name="user" size={20} color="#8E9BB3" />
-              </View>
-              <View style={styles.referralInfo}>
-                <View style={styles.referralHeader}>
-                  <Text style={styles.referralName}>{item.name}</Text>
-                  {item.time && <Text style={styles.referralTime}>{item.time}</Text>}
+              <View style={styles.avatarContainer}>
+                <View style={styles.referralAvatarPlaceholder}>
+                  <Feather name="user" size={20} color="#8E9BB3" />
                 </View>
-                <View style={styles.referralFooter}>
-                  <Text style={styles.referralRole} numberOfLines={1}>{item.role}</Text>
-                  <View style={[styles.statusPill, { backgroundColor: item.statusBg }]}>
-                    <Text style={[styles.statusText, { color: item.statusColor }]}>{item.status}</Text>
-                  </View>
+                <View style={[styles.statusDot, { borderColor: '#FFFFFF', backgroundColor: item.dotColor }]} />
+              </View>
+              
+              <View style={styles.referralInfo}>
+                <Text style={styles.referralName}>{item.name}</Text>
+                <Text style={styles.referralRole} numberOfLines={1}>{item.role}</Text>
+              </View>
+              
+              <View style={styles.referralRight}>
+                <Text style={styles.referralTime}>{item.time}</Text>
+                <View style={[styles.statusPill, { backgroundColor: item.statusBg, borderColor: item.statusBorder, borderWidth: 1 }]}>
+                  <Text style={[styles.statusText, { color: item.statusColor }]}>{item.status}</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -175,34 +192,56 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#0F172A',
+    borderColor: '#1E293B',
+    borderWidth: 2,
     marginRight: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   greeting: {
-    color: '#8E9BB3',
-    fontSize: 14,
+    color: 'rgba(199, 210, 254, 0.8)',
+    fontSize: 12,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
   },
   userName: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
+    letterSpacing: -0.5,
   },
   bellIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  bellBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#10B981',
+    borderWidth: 2,
+    borderColor: '#0F172A',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
     paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     height: 48,
     marginBottom: 24,
   },
@@ -216,44 +255,77 @@ const styles = StyleSheet.create({
   },
   statsCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 24,
+    padding: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 10,
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 30,
     elevation: 3,
-    marginBottom: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
-  statsTitle: {
-    color: '#374151',
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 16,
-  },
-  statsRow: {
+  statsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 4,
+    marginBottom: 12,
+  },
+  statsTitle: {
+    color: '#94A3B8',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  statsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(209, 250, 229, 0.5)',
+  },
+  statsBadgeText: {
+    color: '#059669',
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginLeft: 4,
+  },
+  statsRowWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(241, 245, 249, 0.5)',
   },
   statItem: {
     alignItems: 'center',
     flex: 1,
   },
   statLabel: {
-    color: '#8E9BB3',
-    fontSize: 12,
-    marginBottom: 4,
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
   },
   statValue: {
-    color: '#111827',
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '900',
   },
   statDivider: {
     width: 1,
-    height: 30,
-    backgroundColor: '#E5E7EB',
+    height: 32,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 1,
   },
   filtersContainer: {
     marginBottom: 16,
@@ -287,63 +359,75 @@ const styles = StyleSheet.create({
     paddingBottom: 100, // For floating tab bar
   },
   listHeader: {
-    marginBottom: 16,
+    marginBottom: 8,
   },
   listTitle: {
-    color: '#111827',
-    fontSize: 16,
+    color: '#0F172A',
+    fontSize: 14,
     fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: -0.5,
   },
   referralCard: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 16,
+    padding: 14,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOpacity: 0.02,
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
+    shadowRadius: 10,
     elevation: 2,
+    alignItems: 'center',
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginRight: 14,
   },
   referralAvatarPlaceholder: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#E5E7EB',
-    marginRight: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  statusDot: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
   },
   referralInfo: {
     flex: 1,
     justifyContent: 'center',
   },
-  referralHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
   referralName: {
-    color: '#111827',
-    fontSize: 16,
+    color: '#0F172A',
+    fontSize: 14,
     fontWeight: 'bold',
-  },
-  referralTime: {
-    color: '#8E9BB3',
-    fontSize: 12,
-  },
-  referralFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginBottom: 2,
   },
   referralRole: {
-    color: '#6B7280',
-    fontSize: 12,
-    flex: 1,
-    marginRight: 8,
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  referralRight: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  referralTime: {
+    color: '#94A3B8',
+    fontSize: 10,
+    fontWeight: '600',
   },
   statusPill: {
     paddingHorizontal: 8,

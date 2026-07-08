@@ -62,8 +62,9 @@ const styles = StyleSheet.create({
   tabBar: {
     position: 'absolute',
     bottom: 24,
-    left: 24,
-    right: 24,
+    left: 0,
+    right: 0,
+    marginHorizontal: '10%',   // creates the 80% effective width, centered
     backgroundColor: '#161C33',
     borderRadius: 30,
     height: 64,
@@ -73,7 +74,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 10,
-    paddingBottom: 0,
   },
   tabBarItem: {
     paddingVertical: 10,
