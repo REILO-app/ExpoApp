@@ -1,36 +1,44 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 
 export default function ReferralDetailScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams();
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerBackground} />
-      
+      <LinearGradient
+        colors={['#0F172A', '#1E293B', '#1E1B4B']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerBackground}
+      />
+
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         {/* Back Button */}
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Feather name="chevron-left" size={24} color="#FFFFFF" />
         </TouchableOpacity>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Header Profile */}
-          <View style={styles.profileHeader}>
-            <View style={styles.largeAvatarPlaceholder} />
-            <Text style={styles.profileName}>Nitin Pansare</Text>
-            <Text style={styles.profileRole}>Associate Director Quality . Emerson</Text>
-            <View style={styles.statusPill}>
-              <Text style={styles.statusText}>Referral Accepted</Text>
-            </View>
-            <View style={styles.socialIcons}>
-              <View style={styles.socialIcon}><Feather name="linkedin" size={16} color="#FFFFFF" /></View>
-              <View style={styles.socialIcon}><Feather name="mail" size={16} color="#FFFFFF" /></View>
-              <View style={styles.socialIcon}><Feather name="phone" size={16} color="#FFFFFF" /></View>
-            </View>
+        {/* Header Profile */}
+        <View style={styles.profileHeader}>
+          <View style={styles.largeAvatarPlaceholder} />
+          <Text style={styles.profileName}>Nitin Pansare</Text>
+          <Text style={styles.profileRole}>Associate Director Quality . Emerson</Text>
+          <View style={styles.statusPill}>
+            <Text style={styles.statusText}>Referral Accepted</Text>
           </View>
+          <View style={styles.socialIcons}>
+            <View style={styles.socialIcon}><Feather name="linkedin" size={16} color="#FFFFFF" /></View>
+            <View style={styles.socialIcon}><Feather name="mail" size={16} color="#FFFFFF" /></View>
+            <View style={styles.socialIcon}><Feather name="phone" size={16} color="#FFFFFF" /></View>
+          </View>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
           {/* Cards */}
           <View style={styles.cardsContainer}>
@@ -40,7 +48,7 @@ export default function ReferralDetailScreen() {
                 <Text style={styles.cardTitle}>Contact Information</Text>
                 <Text style={styles.editButton}>Edit</Text>
               </View>
-              
+
               <View style={styles.infoRow}>
                 <Feather name="briefcase" size={18} color="#8E9BB3" style={styles.infoIcon} />
                 <View>
@@ -48,7 +56,7 @@ export default function ReferralDetailScreen() {
                   <Text style={styles.infoValue}>Emerson</Text>
                 </View>
               </View>
-              
+
               <View style={styles.infoRow}>
                 <Feather name="user" size={18} color="#8E9BB3" style={styles.infoIcon} />
                 <View>
@@ -56,7 +64,7 @@ export default function ReferralDetailScreen() {
                   <Text style={styles.infoValue}>Associate Director Quality, India</Text>
                 </View>
               </View>
-              
+
               <View style={styles.infoRow}>
                 <Feather name="map-pin" size={18} color="#8E9BB3" style={styles.infoIcon} />
                 <View>
@@ -80,7 +88,7 @@ export default function ReferralDetailScreen() {
                 <Text style={styles.cardTitle}>Referral History</Text>
                 <Text style={styles.eventsCount}>4 events</Text>
               </View>
-              
+
               <View style={styles.historyTimeline}>
                 <View style={styles.historyItem}>
                   <View style={[styles.historyIconContainer, { backgroundColor: '#FEE2E2' }]}>
@@ -92,7 +100,7 @@ export default function ReferralDetailScreen() {
                     <Text style={styles.historyDesc}>Connection Request was sent on June 7 2026</Text>
                   </View>
                 </View>
-                
+
                 <View style={styles.historyItem}>
                   <View style={[styles.historyIconContainer, { backgroundColor: '#D1FAE5' }]}>
                     <Feather name="user-check" size={12} color="#059669" />
@@ -127,13 +135,16 @@ export default function ReferralDetailScreen() {
               </View>
             </View>
           </View>
-          
+
           <View style={{ height: 100 }} />
         </ScrollView>
-        
+
         {/* Ask for Referral Button */}
         <View style={styles.bottomActionContainer}>
-          <TouchableOpacity style={styles.askReferralButton}>
+          <TouchableOpacity 
+            style={styles.askReferralButton}
+            onPress={() => router.push(`/ask-referral?referralId=${id}`)}
+          >
             <Text style={styles.askReferralButtonText}>Ask for Referral</Text>
           </TouchableOpacity>
         </View>
@@ -152,10 +163,9 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 320,
-    backgroundColor: '#161C33',
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+    height: 340,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   safeArea: {
     flex: 1,
@@ -168,12 +178,14 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   scrollContent: {
-    paddingTop: 40,
+    paddingTop: 10,
+    paddingBottom: 100,
   },
   profileHeader: {
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginBottom: 30,
+    paddingTop: 20,
+    marginBottom: 20,
   },
   largeAvatarPlaceholder: {
     width: 100,
