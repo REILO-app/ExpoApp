@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { BlurView } from 'expo-blur';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -11,36 +12,41 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#1F2937', '#111827', '#0F172A']}
-        style={styles.headerBackground}
-      />
+      <View style={styles.headerBackground}>
+        <LinearGradient
+          colors={['#080d18ff', '#080d18ff', '#1E293B', '#1E1B4B']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <BlurView intensity={20} tint="dark" style={styles.indigoGlow} />
+        <BlurView intensity={20} tint="dark" style={styles.emeraldGlow} />
+      </View>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.pageTitle}>Profile Settings</Text>
-          </View>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.pageTitle}>Profile Settings</Text>
+        </View>
 
-          {/* Profile Info */}
-          <View style={styles.profileSection}>
-            <View style={styles.avatarContainer}>
-              <View style={styles.largeAvatarPlaceholder}>
-                <Feather name="user" size={40} color="#8E9BB3" />
-              </View>
-              <TouchableOpacity style={styles.editAvatarBtn}>
-                <Feather name="camera" size={14} color="#FFFFFF" />
-              </TouchableOpacity>
+        {/* Profile Info */}
+        <View style={styles.profileSection}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.largeAvatarPlaceholder}>
+              <Feather name="user" size={40} color="#8E9BB3" />
             </View>
-            <Text style={styles.profileName}>Prasad Pansare</Text>
-            <Text style={styles.profileRole}>Software Engineer</Text>
+            <TouchableOpacity style={styles.editAvatarBtn}>
+              <Feather name="camera" size={14} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
+          <Text style={styles.profileName}>Prasad Pansare</Text>
+          <Text style={styles.profileRole}>Software Engineer</Text>
+        </View>
 
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Settings List */}
           <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>Account</Text>
-            
+
             <TouchableOpacity style={styles.settingItem}>
               <View style={styles.settingIconContainer}>
                 <Feather name="user" size={18} color="#4B5563" />
@@ -48,9 +54,9 @@ export default function ProfileScreen() {
               <Text style={styles.settingLabel}>Personal Information</Text>
               <Feather name="chevron-right" size={20} color="#9CA3AF" />
             </TouchableOpacity>
-            
+
             <View style={styles.divider} />
-            
+
             <View style={styles.settingItem}>
               <View style={styles.settingIconContainer}>
                 <Feather name="mail" size={18} color="#4B5563" />
@@ -58,7 +64,7 @@ export default function ProfileScreen() {
               <Text style={styles.settingLabel}>Email Address</Text>
               <Text style={styles.settingValue}>prasad@example.com</Text>
             </View>
-            
+
             <View style={styles.divider} />
 
             <TouchableOpacity style={styles.settingItem}>
@@ -72,14 +78,14 @@ export default function ProfileScreen() {
 
           <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>Preferences</Text>
-            
+
             <View style={styles.settingItem}>
               <View style={styles.settingIconContainer}>
                 <Feather name="bell" size={18} color="#4B5563" />
               </View>
               <Text style={styles.settingLabel}>Push Notifications</Text>
-              <Switch 
-                value={notificationsEnabled} 
+              <Switch
+                value={notificationsEnabled}
                 onValueChange={setNotificationsEnabled}
                 trackColor={{ false: '#D1D5DB', true: '#161C33' }}
                 thumbColor="#FFFFFF"
@@ -94,9 +100,9 @@ export default function ProfileScreen() {
               </View>
               <Text style={[styles.settingLabel, { color: '#DC2626' }]}>Sign Out</Text>
             </TouchableOpacity>
-            
+
             <View style={styles.divider} />
-            
+
             <TouchableOpacity style={styles.settingItem}>
               <View style={[styles.settingIconContainer, { backgroundColor: '#FEE2E2' }]}>
                 <Feather name="trash-2" size={18} color="#DC2626" />
@@ -121,9 +127,28 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 240,
+    height: 280,
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
+    overflow: 'hidden',
+  },
+  indigoGlow: {
+    position: 'absolute',
+    top: -120,
+    right: -130,
+    width: 256,
+    height: 256,
+    borderRadius: 128,
+    backgroundColor: 'rgba(99, 102, 241, 0.18)',
+  },
+  emeraldGlow: {
+    position: 'absolute',
+    bottom: -60,
+    left: -50,
+    width: 192,
+    height: 192,
+    borderRadius: 96,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
   },
   safeArea: {
     flex: 1,
@@ -173,13 +198,13 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
   profileName: {
-    color: '#111827',
+    color: '#FFFFFF',
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   profileRole: {
-    color: '#6B7280',
+    color: '#9CA3AF',
     fontSize: 14,
   },
   settingsSection: {

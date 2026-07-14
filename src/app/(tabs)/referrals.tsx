@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { BlurView } from 'expo-blur';
 
 const MOCK_REFERRALS = [
   { id: '1', name: 'Nitin Pansare', role: 'Assoc. Director', time: '2h', status: 'Accepted', statusColor: '#059669', statusBg: '#ECFDF5', statusBorder: '#D1FAE5', dotColor: '#10B981' },
@@ -11,6 +12,7 @@ const MOCK_REFERRALS = [
   { id: '3', name: 'Bhavik Mer', role: 'VP Engineering', time: '3d', status: 'Pending', statusColor: '#D97706', statusBg: '#FFFBEB', statusBorder: '#FEF3C7', dotColor: '#FBBF24' },
   { id: '4', name: 'Ajay Joshi', role: 'Global Tech Lead', time: '4d', status: 'No Response', statusColor: '#64748B', statusBg: '#F8FAFC', statusBorder: '#E2E8F0', dotColor: '#CBD5E1' },
   { id: '5', name: 'Giridhar S.', role: 'Software Dev', time: '1w', status: 'Declined', statusColor: '#E11D48', statusBg: '#FFF1F2', statusBorder: '#FFE4E6', dotColor: '#F43F5E' },
+
 ];
 
 export default function ReferralsScreen() {
@@ -35,12 +37,16 @@ export default function ReferralsScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#0F172A', '#1E293B', '#1E1B4B']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.headerBackground}
-      />
+      <View style={styles.headerBackground}>
+        <LinearGradient
+          colors={['#080d18ff', '#080d18ff', '#1E293B', '#1E1B4B']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <BlurView intensity={20} tint="dark" style={styles.indigoGlow} />
+        <BlurView intensity={20} tint="dark" style={styles.emeraldGlow} />
+      </View>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
 
         {/* Fixed Header */}
@@ -142,6 +148,25 @@ const styles = StyleSheet.create({
     height: 180,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+    overflow: 'hidden',
+  },
+  indigoGlow: {
+    position: 'absolute',
+    top: -120,
+    right: -130,
+    width: 256,
+    height: 256,
+    borderRadius: 128,
+    backgroundColor: 'rgba(99, 102, 241, 0.18)',
+  },
+  emeraldGlow: {
+    position: 'absolute',
+    bottom: -60,
+    left: -50,
+    width: 192,
+    height: 192,
+    borderRadius: 96,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
   },
   safeArea: {
     flex: 1,
