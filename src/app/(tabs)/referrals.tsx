@@ -44,8 +44,8 @@ export default function ReferralsScreen() {
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <BlurView intensity={20} tint="dark" style={styles.indigoGlow} />
-        <BlurView intensity={20} tint="dark" style={styles.emeraldGlow} />
+        <BlurView intensity={15} tint="dark" style={styles.indigoGlow} />
+        <BlurView intensity={15} tint="dark" style={styles.emeraldGlow} />
       </View>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
 
@@ -156,12 +156,12 @@ const styles = StyleSheet.create({
     right: -130,
     width: 256,
     height: 256,
-    borderRadius: 128,
+    borderRadius: 500,
     backgroundColor: 'rgba(99, 102, 241, 0.18)',
   },
   emeraldGlow: {
     position: 'absolute',
-    bottom: -60,
+    bottom: -100,
     left: -50,
     width: 192,
     height: 192,

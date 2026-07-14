@@ -3,6 +3,7 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { BlurView } from 'expo-blur';
 
 export default function ReferralDetailScreen() {
   const router = useRouter();
@@ -10,12 +11,16 @@ export default function ReferralDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#0F172A', '#1E293B', '#1E1B4B']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.headerBackground}
-      />
+      <View style={styles.headerBackground}>
+        <LinearGradient
+          colors={['#080d18ff', '#080d18ff', '#1E293B', '#1E1B4B']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <BlurView intensity={20} tint="dark" style={styles.indigoGlow} />
+        <BlurView intensity={20} tint="dark" style={styles.emeraldGlow} />
+      </View>
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         {/* Back Button */}
@@ -141,7 +146,7 @@ export default function ReferralDetailScreen() {
 
         {/* Ask for Referral Button */}
         <View style={styles.bottomActionContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.askReferralButton}
             onPress={() => router.push(`/ask-referral?referralId=${id}`)}
           >
@@ -166,6 +171,25 @@ const styles = StyleSheet.create({
     height: 340,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+    overflow: 'hidden',
+  },
+  indigoGlow: {
+    position: 'absolute',
+    top: -120,
+    right: -130,
+    width: 256,
+    height: 256,
+    borderRadius: 128,
+    backgroundColor: 'rgba(99, 102, 241, 0.18)',
+  },
+  emeraldGlow: {
+    position: 'absolute',
+    bottom: -60,
+    left: -50,
+    width: 192,
+    height: 192,
+    borderRadius: 96,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
   },
   safeArea: {
     flex: 1,

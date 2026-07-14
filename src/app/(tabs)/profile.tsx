@@ -47,7 +47,7 @@ export default function ProfileScreen() {
           <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>Account</Text>
 
-            <TouchableOpacity style={styles.settingItem}>
+            <TouchableOpacity style={styles.settingItem} onPress={() => router.push('/profile/personal-info')}>
               <View style={styles.settingIconContainer}>
                 <Feather name="user" size={18} color="#4B5563" />
               </View>
@@ -67,7 +67,7 @@ export default function ProfileScreen() {
 
             <View style={styles.divider} />
 
-            <TouchableOpacity style={styles.settingItem}>
+            <TouchableOpacity style={styles.settingItem} onPress={() => router.push('/profile/change-password')}>
               <View style={styles.settingIconContainer}>
                 <Feather name="lock" size={18} color="#4B5563" />
               </View>
