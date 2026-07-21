@@ -85,7 +85,7 @@ export default function LoginScreen() {
               <Text style={styles.forgotPasswordText}>Forgot password?</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/(tabs)')}>
+            <TouchableOpacity style={styles.loginButton} onPress={() => router.replace('/(tabs)')}>
               <Text style={styles.loginButtonText}>Sign In</Text>
               <Feather name="arrow-right" size={20} color="#111827" />
             </TouchableOpacity>

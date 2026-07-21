@@ -1,13 +1,53 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BlurView } from 'expo-blur';
+import { useState } from 'react';
 
 export default function ReferralDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
+
+  // Editable profile states
+  const [name, setName] = useState('Nitin Pansare');
+  const [company, setCompany] = useState('Emerson');
+  const [role, setRole] = useState('Associate Director Quality, India');
+  const [location, setLocation] = useState('Pune, MH, India');
+  const [notes, setNotes] = useState('He is my father, and he is willing to refer me. I have proved myself to him that i am worth it. So he is willing to refer to any upcoming jobs');
+
+  // Edit toggles
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempName, setTempName] = useState(name);
+  const [tempCompany, setTempCompany] = useState(company);
+  const [tempRole, setTempRole] = useState(role);
+  const [tempLocation, setTempLocation] = useState(location);
+  const [tempNotes, setTempNotes] = useState(notes);
+
+  const handleEditToggle = () => {
+    if (isEditing) {
+      // Save changes
+      setName(tempName);
+      setCompany(tempCompany);
+      setRole(tempRole);
+      setLocation(tempLocation);
+      setNotes(tempNotes);
+      setIsEditing(false);
+    } else {
+      // Enter edit mode
+      setTempName(name);
+      setTempCompany(company);
+      setTempRole(role);
+      setTempLocation(location);
+      setTempNotes(notes);
+      setIsEditing(true);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
 
   return (
     <View style={styles.container}>
@@ -31,8 +71,20 @@ export default function ReferralDetailScreen() {
         {/* Header Profile */}
         <View style={styles.profileHeader}>
           <View style={styles.largeAvatarPlaceholder} />
-          <Text style={styles.profileName}>Nitin Pansare</Text>
-          <Text style={styles.profileRole}>Associate Director Quality . Emerson</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.editTitleInput}
+              value={tempName}
+              onChangeText={setTempName}
+              placeholder="Full Name"
+              placeholderTextColor="#8E9BB3"
+            />
+          ) : (
+            <Text style={styles.profileName}>{name}</Text>
+          )}
+          <Text style={styles.profileRole}>
+            {role.split(',')[0]} . {company}
+          </Text>
           <View style={styles.statusPill}>
             <Text style={styles.statusText}>Referral Accepted</Text>
           </View>
@@ -51,30 +103,53 @@ export default function ReferralDetailScreen() {
             <View style={styles.card}>
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle}>Contact Information</Text>
-                <Text style={styles.editButton}>Edit</Text>
+                <View style={styles.editActionsWrapper}>
+                  {isEditing && (
+                    <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
+                      <Text style={styles.cancelText}>Cancel</Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity onPress={handleEditToggle}>
+                    <Text style={styles.editButton}>
+                      {isEditing ? 'Save' : 'Edit'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <View style={styles.infoRow}>
                 <Feather name="briefcase" size={18} color="#8E9BB3" style={styles.infoIcon} />
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.infoLabel}>Company</Text>
-                  <Text style={styles.infoValue}>Emerson</Text>
+                  {isEditing ? (
+                    <TextInput style={styles.editInput} value={tempCompany} onChangeText={setTempCompany} />
+                  ) : (
+                    <Text style={styles.infoValue}>{company}</Text>
+                  )}
                 </View>
               </View>
 
               <View style={styles.infoRow}>
                 <Feather name="user" size={18} color="#8E9BB3" style={styles.infoIcon} />
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.infoLabel}>Role</Text>
-                  <Text style={styles.infoValue}>Associate Director Quality, India</Text>
+                  {isEditing ? (
+                    <TextInput style={styles.editInput} value={tempRole} onChangeText={setTempRole} />
+                  ) : (
+                    <Text style={styles.infoValue}>{role}</Text>
+                  )}
                 </View>
               </View>
 
               <View style={styles.infoRow}>
                 <Feather name="map-pin" size={18} color="#8E9BB3" style={styles.infoIcon} />
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.infoLabel}>Location</Text>
-                  <Text style={styles.infoValue}>Pune, MH, India</Text>
+                  {isEditing ? (
+                    <TextInput style={styles.editInput} value={tempLocation} onChangeText={setTempLocation} />
+                  ) : (
+                    <Text style={styles.infoValue}>{location}</Text>
+                  )}
                 </View>
               </View>
             </View>
@@ -82,9 +157,16 @@ export default function ReferralDetailScreen() {
             {/* Notes */}
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Notes</Text>
-              <Text style={styles.notesText}>
-                He is my father, and he is willing to refer me. I have proved myself to him that i am worth it. So he is willing to refer to any upcoming jobs
-              </Text>
+              {isEditing ? (
+                <TextInput
+                  style={[styles.editInput, styles.textArea]}
+                  value={tempNotes}
+                  onChangeText={setTempNotes}
+                  multiline
+                />
+              ) : (
+                <Text style={styles.notesText}>{notes}</Text>
+              )}
             </View>
 
             {/* Referral History */}
@@ -96,8 +178,8 @@ export default function ReferralDetailScreen() {
 
               <View style={styles.historyTimeline}>
                 <View style={styles.historyItem}>
-                  <View style={[styles.historyIconContainer, { backgroundColor: '#FEE2E2' }]}>
-                    <Feather name="send" size={12} color="#DC2626" />
+                  <View style={styles.historyIconContainer}>
+                    <Feather name="send" size={12} color="#6366F1" />
                   </View>
                   <View style={styles.historyLine} />
                   <View style={styles.historyContent}>
@@ -107,8 +189,8 @@ export default function ReferralDetailScreen() {
                 </View>
 
                 <View style={styles.historyItem}>
-                  <View style={[styles.historyIconContainer, { backgroundColor: '#D1FAE5' }]}>
-                    <Feather name="user-check" size={12} color="#059669" />
+                  <View style={styles.historyIconContainer}>
+                    <Feather name="user-check" size={12} color="#10B981" />
                   </View>
                   <View style={styles.historyLine} />
                   <View style={styles.historyContent}>
@@ -118,8 +200,8 @@ export default function ReferralDetailScreen() {
                 </View>
 
                 <View style={styles.historyItem}>
-                  <View style={[styles.historyIconContainer, { backgroundColor: '#FEF3C7' }]}>
-                    <Feather name="mail" size={12} color="#D97706" />
+                  <View style={styles.historyIconContainer}>
+                    <Feather name="mail" size={12} color="#6366F1" />
                   </View>
                   <View style={styles.historyLine} />
                   <View style={styles.historyContent}>
@@ -129,8 +211,8 @@ export default function ReferralDetailScreen() {
                 </View>
 
                 <View style={styles.historyItem}>
-                  <View style={[styles.historyIconContainer, { backgroundColor: '#E0E7FF' }]}>
-                    <Feather name="check-circle" size={12} color="#4338CA" />
+                  <View style={styles.historyIconContainer}>
+                    <Feather name="check-circle" size={12} color="#10B981" />
                   </View>
                   <View style={styles.historyContent}>
                     <Text style={styles.historyTitle}>Referral Request Approved!</Text>
@@ -279,10 +361,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 16,
   },
+  editActionsWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  cancelBtn: {
+    paddingVertical: 4,
+  },
+  cancelText: {
+    color: '#6B7280',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   editButton: {
     color: '#111827',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   eventsCount: {
     color: '#111827',
@@ -301,7 +396,7 @@ const styles = StyleSheet.create({
   infoLabel: {
     color: '#8E9BB3',
     fontSize: 12,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   infoValue: {
     color: '#111827',
@@ -324,6 +419,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
@@ -374,5 +470,35 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  editTitleInput: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 8,
+    textAlign: 'center',
+    width: '80%',
+  },
+  editInput: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginTop: 2,
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
   },
 });

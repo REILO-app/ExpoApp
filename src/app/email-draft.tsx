@@ -1,29 +1,282 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Alert
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { GoogleGenAI } from '@google/genai';
+import * as DocumentPicker from 'expo-document-picker';
+
+// Referrer Details Interface
+interface ReferrerDetails {
+  name: string;
+  title?: string;
+  company?: string;
+  notes?: string;
+  email?: string;
+}
+
+// Job Details Interface
+interface JobDetails {
+  role: string;
+  company: string;
+  jobId?: string;
+  location?: string;
+  jd?: string;
+  link?: string;
+}
+
+// Mock list of referrers to resolve details based on ID
+const REFERRERS: Record<string, ReferrerDetails> = {
+  '1': {
+    name: 'Nitin Pansare',
+    title: 'Associate Director Quality',
+    company: 'Emerson',
+    email: 'prasadpansare19@gmail.com',
+    notes: 'He is my father, and he is willing to refer me. I have proved myself to him that i am worth it. So he is willing to refer to any upcoming jobs'
+  },
+  '2': {
+    name: 'Yogesh',
+    title: 'Software Dev',
+    company: 'Emerson',
+    email: 'yogesh@emerson.com',
+    notes: 'Professional acquaintance from previous project collaboration.'
+  },
+  '3': {
+    name: 'Bhavik Mer',
+    title: 'VP Engineering',
+    company: 'TechCorp',
+    email: 'bhavik.mer@techcorp.com',
+    notes: 'Former engineering manager at my previous company.'
+  },
+  '4': {
+    name: 'Ajay Joshi',
+    title: 'Global Tech Lead',
+    company: 'InnoSystems',
+    email: 'ajay.joshi@innosystems.com',
+    notes: 'Met at a local tech meetup and discussed frontend architectures.'
+  },
+  '5': {
+    name: 'Giridhar S.',
+    title: 'Software Dev',
+    company: 'DevFlow',
+    email: 'giridhar.s@devflow.com',
+    notes: 'College alumni who works in the target team.'
+  }
+};
 
 export default function EmailDraftScreen() {
   const router = useRouter();
-  const { referralId } = useLocalSearchParams();
 
-  // Mock AI generated content
-  const [subject, setSubject] = useState("Referral Request for Senior Frontend Engineer Role");
-  const [body, setBody] = useState(
-    "Hi Nitin,\n\n" +
-    "I hope this email finds you well!\n\n" +
-    "I saw that Emerson is currently hiring for a Senior Frontend Engineer, and given your experience there as an Associate Director, I wanted to ask if you would be open to referring me for this position.\n\n" +
-    "I have 5 years of experience building scalable React applications and I believe my background aligns perfectly with the job description. I have attached my resume and the job link below for your convenience.\n\n" +
-    "If you're comfortable, I'd really appreciate your referral. If not, no worries at all!\n\n" +
-    "Best regards,\n" +
-    "[Your Name]"
-  );
+  // Retrieve job and referral parameters from router params
+  const { referralId, role, company, jobId, location, jd, link } = useLocalSearchParams();
 
-  const handleSend = () => {
-    // In the future, this will POST to /api/jobs/:jobId/send-email
-    router.push('/');
+  // Retrieve default referrer or resolve by referralId
+  const rId = Array.isArray(referralId) ? referralId[0] : referralId || '1';
+  const referrer = REFERRERS[rId] || REFERRERS['1'];
+
+  // Construct job details
+  const jobDetails: JobDetails = {
+    role: (Array.isArray(role) ? role[0] : role) || 'Senior Frontend Engineer',
+    company: (Array.isArray(company) ? company[0] : company) || 'Emerson',
+    jobId: (Array.isArray(jobId) ? jobId[0] : jobId) || '',
+    location: (Array.isArray(location) ? location[0] : location) || 'Pune, India',
+    jd: (Array.isArray(jd) ? jd[0] : jd) || '',
+    link: (Array.isArray(link) ? link[0] : link) || ''
+  };
+
+  // State Management
+  const [model] = useState<'gemini-3.5-flash'>('gemini-3.5-flash');
+  const [generating, setGenerating] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+
+  // State for attached resume
+  const [attachmentUri, setAttachmentUri] = useState<string | null>(null);
+  const [attachmentName, setAttachmentName] = useState<string | null>(null);
+
+  // Initial prompt generation on mount
+  useEffect(() => {
+    handleGenerateEmail(model);
+  }, []);
+
+  const handlePickDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setAttachmentUri(asset.uri);
+        setAttachmentName(asset.name || 'resume.pdf');
+      }
+    } catch (error) {
+      console.error('Error picking document:', error);
+      Alert.alert('Error', 'Failed to pick document.');
+    }
+  };
+
+  const handleRemoveAttachment = () => {
+    setAttachmentUri(null);
+    setAttachmentName(null);
+  };
+
+  const handleGenerateEmail = async (modelToUse: typeof model) => {
+    setGenerating(true);
+    setRateLimited(false);
+
+    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+    if (!apiKey) {
+      Alert.alert(
+        'Gemini API Key Required',
+        'Please add EXPO_PUBLIC_GEMINI_API_KEY to your apps/mobile/.env file to generate email drafts directly from the app.',
+        [{ text: 'OK' }]
+      );
+      setGenerating(false);
+      return;
+    }
+
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+
+      const prompt = `You are a professional, helpful assistant who drafts polite, warm, and highly personalized job referral request emails.
+
+Write a referral request email using the details below:
+
+SENDER/CANDIDATE DETAILS:
+- Name: Prasad Pansare
+
+REFERRER DETAILS (the person being asked):
+- Name: ${referrer.name}
+${referrer.company ? `- Company: ${referrer.company}` : ''}
+${referrer.title ? `- Role/Title: ${referrer.title}` : ''}
+${referrer.notes ? `- Relationship / Connection Notes: ${referrer.notes}` : ''}
+
+TARGET JOB DETAILS:
+- Role / Title: ${jobDetails.role}
+- Company: ${jobDetails.company}
+${jobDetails.location ? `- Location: ${jobDetails.location}` : ''}
+${jobDetails.jobId ? `- Job ID: ${jobDetails.jobId}` : ''}
+${jobDetails.link ? `- Job URL: ${jobDetails.link}` : ''}
+${jobDetails.jd ? `- Job Description:\n${jobDetails.jd}` : ''}
+
+INSTRUCTIONS:
+1. Compose a highly professional email requesting a job referral for this target job.
+2. Tone: Adapt the tone based on the Relationship / Connection Notes. 
+   - If the relationship note indicates they are close (e.g., family member like a father, a close friend, a former close colleague), make the tone warm, friendly, appreciative, but still clear about the job request.
+   - If it's a professional connection or someone they haven't spoken to in a while, make it polite, respectful, clear, and professional.
+3. Keep the email concise: write a polite opening, a brief paragraph explaining why the candidate is a good fit or interested in the role, a polite ask for the referral (mentioning the resume is attached/available), and a warm close.
+4. Keep the subject line short, clear, and highly relevant.
+
+Return the result as a JSON object matching this schema:
+{
+  "subject": "The subject line of the email",
+  "body": "The full body of the email. Keep paragraphs separated by double newlines (\\n\\n)."
+}`;
+
+      const response = await ai.models.generateContent({
+        model: modelToUse || 'gemini-3.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'OBJECT',
+            properties: {
+              subject: { type: 'STRING' },
+              body: { type: 'STRING' }
+            },
+            required: ['subject', 'body']
+          }
+        }
+      });
+
+      const rawText = response.text;
+      if (!rawText) {
+        throw new Error('Failed to retrieve content from Gemini API response');
+      }
+
+      const parsed = JSON.parse(rawText.trim());
+      if (parsed.subject && parsed.body) {
+        setSubject(parsed.subject);
+        setBody(parsed.body);
+      } else {
+        throw new Error('JSON response from Gemini was missing subject or body fields');
+      }
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert(
+        'Generation Failed',
+        error?.message || 'Failed to generate email draft using Gemini.'
+      );
+
+      // Fallback draft content
+      setSubject(`Referral Request for ${jobDetails.role} role at ${jobDetails.company}`);
+      setBody(
+        `Hi ${referrer.name.split(' ')[0] || 'there'},\n\n` +
+        `I hope this message finds you well!\n\n` +
+        `I saw that ${jobDetails.company} is currently hiring for a ${jobDetails.role}${jobDetails.location ? ` in ${jobDetails.location}` : ''}. Given your experience there${referrer.title ? ` as ${referrer.title}` : ''}, I wanted to ask if you would be open to referring me for this position.\n\n` +
+        `I have attached my resume and the job link below for your convenience. I believe my background aligns well with the description and I would love the chance to apply.\n\n` +
+        `If you're comfortable, I'd really appreciate your referral. If not, no worries at all!\n\n` +
+        `Best regards,\n` +
+        `Prasad Pansare`
+      );
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleSend = async () => {
+    setSending(true);
+    try {
+      const emailRecipient = referrer.email || `${referrer.name.toLowerCase().replace(/\s+/g, '')}@example.com`;
+
+      const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiBaseUrl}/api/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          to: emailRecipient,
+          subject,
+          body,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || data.status === 'error') {
+        throw new Error(data.message || 'Server returned an error');
+      }
+
+      Alert.alert(
+        'Email Sent! 🚀',
+        data.message || 'Your referral request email was sent successfully directly via backend!',
+        [{ text: 'OK', onPress: () => router.replace('/(tabs)/jobs') }]
+      );
+    } catch (error: any) {
+      console.error('Error sending mail:', error);
+      Alert.alert('Sending Failed', error?.message || 'Could not send email directly from the backend.');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -34,7 +287,7 @@ export default function EmailDraftScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.headerBackground}
       />
-      
+
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -44,42 +297,139 @@ export default function EmailDraftScreen() {
           <View style={styles.placeholder} />
         </View>
 
-        <KeyboardAvoidingView 
-          style={{ flex: 1 }} 
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
-            
-            <View style={styles.infoCard}>
-              <Feather name="sparkles" size={20} color="#059669" style={styles.infoIcon} />
-              <Text style={styles.infoText}>
-                Your email is ready! Review the AI-generated draft below. You can edit the subject and body before sending it off.
+
+            {/* Top Parameters Card */}
+            <View style={styles.contextCard}>
+              <View style={styles.contextHeader}>
+                <Feather name="send" size={16} color="#6366F1" />
+                <Text style={styles.contextTitle}>Referral Target</Text>
+              </View>
+              <Text style={styles.contextReferrer}>
+                To: <Text style={styles.boldText}>{referrer.name}</Text> ({referrer.title || 'Contact'} at {referrer.company})
+              </Text>
+              <Text style={styles.contextJob}>
+                For: <Text style={styles.boldText}>{jobDetails.role}</Text> @ {jobDetails.company}
               </Text>
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Subject</Text>
-              <TextInput 
-                style={styles.input} 
-                value={subject}
-                onChangeText={setSubject}
-              />
+            {/* Resume Attachment Card */}
+            <View style={styles.attachmentCard}>
+              <View style={styles.attachmentHeader}>
+                <Feather name="paperclip" size={16} color="#374151" style={{ marginRight: 6 }} />
+                <Text style={styles.attachmentTitle}>Resume Attachment</Text>
+              </View>
+
+              {attachmentName ? (
+                <View style={styles.fileRow}>
+                  <View style={styles.fileInfo}>
+                    <Feather name="file-text" size={20} color="#6B7280" style={{ marginRight: 10 }} />
+                    <Text style={styles.fileName} numberOfLines={1}>
+                      {attachmentName}
+                    </Text>
+                  </View>
+                  <TouchableOpacity onPress={handleRemoveAttachment} style={styles.removeBtn}>
+                    <Feather name="x" size={18} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity onPress={handlePickDocument} style={styles.uploadBtn} activeOpacity={0.8}>
+                  <Feather name="upload-cloud" size={18} color="#6B7280" style={{ marginRight: 8 }} />
+                  <Text style={styles.uploadBtnText}>Upload Resume PDF</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email Body</Text>
-              <TextInput 
-                style={[styles.input, styles.textArea]} 
-                value={body}
-                onChangeText={setBody}
-                multiline
+            {/* Info Status Card */}
+            <View style={[
+              styles.infoCard,
+              rateLimited && styles.rateLimitedInfoCard
+            ]}>
+              <Feather
+                name={rateLimited ? 'alert-triangle' : 'zap'}
+                size={20}
+                color={rateLimited ? '#DC2626' : '#059669'}
+                style={styles.infoIcon}
               />
+              <Text style={[
+                styles.infoText,
+                rateLimited && styles.rateLimitedInfoText
+              ]}>
+                {generating
+                  ? 'Generating email using Gemini...'
+                  : rateLimited
+                    ? 'Daily generation limit of 5 emails reached. Please try again tomorrow.'
+                    : 'Email draft generated successfully via backend using Gemini.'
+                }
+              </Text>
             </View>
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleSend}>
-              <Feather name="send" size={18} color="#FFFFFF" style={styles.submitIcon} />
-              <Text style={styles.submitButtonText}>Send Referral Request</Text>
-            </TouchableOpacity>
+            {generating ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#6366F1" />
+                <Text style={styles.loadingText}>Gemini is crafting your referral request...</Text>
+              </View>
+            ) : (
+              <>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Subject</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={subject}
+                    onChangeText={setSubject}
+                    placeholder="Enter email subject"
+                    placeholderTextColor="#9CA3AF"
+                    editable={!rateLimited}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Email Body</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    value={body}
+                    onChangeText={setBody}
+                    multiline
+                    placeholder="Enter email body"
+                    placeholderTextColor="#9CA3AF"
+                    editable={!rateLimited}
+                  />
+                </View>
+
+                {!rateLimited ? (
+                  <TouchableOpacity
+                    style={styles.regenerateButton}
+                    onPress={() => handleGenerateEmail(model)}
+                    activeOpacity={0.8}
+                  >
+                    <Feather name="refresh-cw" size={16} color="#6366F1" style={{ marginRight: 8 }} />
+                    <Text style={styles.regenerateButtonText}>Regenerate Draft</Text>
+                  </TouchableOpacity>
+                ) : null}
+
+                <TouchableOpacity
+                  style={[
+                    styles.submitButton,
+                    (rateLimited || sending) && styles.submitButtonDisabled
+                  ]}
+                  onPress={handleSend}
+                  disabled={rateLimited || sending}
+                >
+                  {sending ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <>
+                      <Feather name="send" size={18} color="#FFFFFF" style={styles.submitIcon} />
+                      <Text style={styles.submitButtonText}>Send Referral Request</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
 
           </ScrollView>
         </KeyboardAvoidingView>
@@ -111,7 +461,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    marginBottom: 10,
   },
   backButton: {
     padding: 8,
@@ -128,24 +477,134 @@ const styles = StyleSheet.create({
   formContainer: {
     padding: 20,
   },
+  contextCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  contextHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  contextTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  contextReferrer: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 6,
+  },
+  contextJob: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  boldText: {
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  attachmentCard: {
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  attachmentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  attachmentTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#374151',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  fileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F9FAFB',
+    padding: 12,
+    borderRadius: 10,
+  },
+  fileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 10,
+  },
+  fileName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#111827',
+  },
+  removeBtn: {
+    padding: 4,
+  },
+  uploadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#D1D5DB',
+    borderRadius: 10,
+    paddingVertical: 14,
+  },
+  uploadBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
   infoCard: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#ECFDF5',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
-    marginBottom: 24,
+    borderColor: '#D1FAE5',
+    marginBottom: 20,
+  },
+  rateLimitedInfoCard: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FCA5A5',
   },
   infoIcon: {
     marginRight: 12,
-    marginTop: 2,
   },
   infoText: {
-    flex: 1,
-    color: '#047857',
     fontSize: 13,
+    fontWeight: '500',
+    color: '#059669',
+    flex: 1,
     lineHeight: 18,
+  },
+  rateLimitedInfoText: {
+    color: '#DC2626',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
   },
   inputGroup: {
     marginBottom: 20,
@@ -171,6 +630,22 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     lineHeight: 22,
   },
+  regenerateButton: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  regenerateButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6366F1',
+  },
   submitButton: {
     backgroundColor: '#161C33',
     flexDirection: 'row',
@@ -185,6 +660,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 10,
     elevation: 4,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#9CA3AF',
+    elevation: 0,
   },
   submitIcon: {
     marginRight: 8,
