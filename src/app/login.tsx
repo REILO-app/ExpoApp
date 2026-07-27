@@ -9,7 +9,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
+
   const animatedValue = new Animated.Value(0);
 
   useEffect(() => {
@@ -39,12 +39,12 @@ export default function LoginScreen() {
       <Animated.View style={[styles.backgroundContainer, { transform: [{ scale }] }]}>
         <LinearGradient
           colors={['#0F172A', '#1E293B', '#161C33']}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         />
       </Animated.View>
-      
+
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
           <View style={styles.logoContainer}>
@@ -55,10 +55,10 @@ export default function LoginScreen() {
 
           <View style={styles.formContainer}>
             <Text style={styles.welcomeText}>Welcome back</Text>
-            
+
             <View style={styles.inputContainer}>
               <Feather name="mail" size={20} color="#8E9BB3" style={styles.inputIcon} />
-              <TextInput 
+              <TextInput
                 style={styles.input}
                 placeholder="Email address"
                 placeholderTextColor="#8E9BB3"
@@ -71,7 +71,7 @@ export default function LoginScreen() {
 
             <View style={styles.inputContainer}>
               <Feather name="lock" size={20} color="#8E9BB3" style={styles.inputIcon} />
-              <TextInput 
+              <TextInput
                 style={styles.input}
                 placeholder="Password"
                 placeholderTextColor="#8E9BB3"
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0F172A',
   },
   backgroundContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   safeArea: {
     flex: 1,

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Linking, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,19 +10,25 @@ export default function ReferralDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
 
-  // Editable profile states
+  // Primary Editable Profile States
   const [name, setName] = useState('Nitin Pansare');
   const [company, setCompany] = useState('Emerson');
   const [role, setRole] = useState('Associate Director Quality, India');
   const [location, setLocation] = useState('Pune, MH, India');
+  const [email, setEmail] = useState('prasadpansare19@gmail.com');
+  const [phone, setPhone] = useState('+91 98765 43210');
+  const [linkedin, setLinkedin] = useState('https://linkedin.com/in/nitinpansare');
   const [notes, setNotes] = useState('He is my father, and he is willing to refer me. I have proved myself to him that i am worth it. So he is willing to refer to any upcoming jobs');
 
-  // Edit toggles
+  // Edit Toggles & Temporary State
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState(name);
   const [tempCompany, setTempCompany] = useState(company);
   const [tempRole, setTempRole] = useState(role);
   const [tempLocation, setTempLocation] = useState(location);
+  const [tempEmail, setTempEmail] = useState(email);
+  const [tempPhone, setTempPhone] = useState(phone);
+  const [tempLinkedin, setTempLinkedin] = useState(linkedin);
   const [tempNotes, setTempNotes] = useState(notes);
 
   const handleEditToggle = () => {
@@ -32,6 +38,9 @@ export default function ReferralDetailScreen() {
       setCompany(tempCompany);
       setRole(tempRole);
       setLocation(tempLocation);
+      setEmail(tempEmail);
+      setPhone(tempPhone);
+      setLinkedin(tempLinkedin);
       setNotes(tempNotes);
       setIsEditing(false);
     } else {
@@ -40,6 +49,9 @@ export default function ReferralDetailScreen() {
       setTempCompany(company);
       setTempRole(role);
       setTempLocation(location);
+      setTempEmail(email);
+      setTempPhone(phone);
+      setTempLinkedin(linkedin);
       setTempNotes(notes);
       setIsEditing(true);
     }
@@ -47,6 +59,11 @@ export default function ReferralDetailScreen() {
 
   const handleCancel = () => {
     setIsEditing(false);
+  };
+
+  const openSocialLink = (url: string) => {
+    if (!url) return;
+    Linking.openURL(url).catch(() => Alert.alert('Error', 'Unable to open link'));
   };
 
   return (
@@ -89,9 +106,15 @@ export default function ReferralDetailScreen() {
             <Text style={styles.statusText}>Referral Accepted</Text>
           </View>
           <View style={styles.socialIcons}>
-            <View style={styles.socialIcon}><Feather name="linkedin" size={16} color="#FFFFFF" /></View>
-            <View style={styles.socialIcon}><Feather name="mail" size={16} color="#FFFFFF" /></View>
-            <View style={styles.socialIcon}><Feather name="phone" size={16} color="#FFFFFF" /></View>
+            <TouchableOpacity style={styles.socialIcon} onPress={() => openSocialLink(linkedin)}>
+              <Feather name="linkedin" size={16} color="#FFFFFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.socialIcon} onPress={() => openSocialLink(`mailto:${email}`)}>
+              <Feather name="mail" size={16} color="#FFFFFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.socialIcon} onPress={() => openSocialLink(`tel:${phone}`)}>
+              <Feather name="phone" size={16} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -117,41 +140,92 @@ export default function ReferralDetailScreen() {
                 </View>
               </View>
 
+              {/* Company */}
               <View style={styles.infoRow}>
                 <Feather name="briefcase" size={18} color="#8E9BB3" style={styles.infoIcon} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.infoLabel}>Company</Text>
                   {isEditing ? (
-                    <TextInput style={styles.editInput} value={tempCompany} onChangeText={setTempCompany} />
+                    <TextInput style={styles.editInput} value={tempCompany} onChangeText={setTempCompany} placeholder="Company" />
                   ) : (
                     <Text style={styles.infoValue}>{company}</Text>
                   )}
                 </View>
               </View>
 
+              {/* Role */}
               <View style={styles.infoRow}>
                 <Feather name="user" size={18} color="#8E9BB3" style={styles.infoIcon} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.infoLabel}>Role</Text>
                   {isEditing ? (
-                    <TextInput style={styles.editInput} value={tempRole} onChangeText={setTempRole} />
+                    <TextInput style={styles.editInput} value={tempRole} onChangeText={setTempRole} placeholder="Role" />
                   ) : (
                     <Text style={styles.infoValue}>{role}</Text>
                   )}
                 </View>
               </View>
 
+              {/* Location */}
               <View style={styles.infoRow}>
                 <Feather name="map-pin" size={18} color="#8E9BB3" style={styles.infoIcon} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.infoLabel}>Location</Text>
                   {isEditing ? (
-                    <TextInput style={styles.editInput} value={tempLocation} onChangeText={setTempLocation} />
+                    <TextInput style={styles.editInput} value={tempLocation} onChangeText={setTempLocation} placeholder="Location" />
                   ) : (
                     <Text style={styles.infoValue}>{location}</Text>
                   )}
                 </View>
               </View>
+
+              {/* Extended Contact Fields - Visible ONLY during edit mode */}
+              {isEditing && (
+                <>
+                  <View style={styles.infoRow}>
+                    <Feather name="mail" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.infoLabel}>Email (Hidden on card when saved)</Text>
+                      <TextInput
+                        style={styles.editInput}
+                        value={tempEmail}
+                        onChangeText={setTempEmail}
+                        placeholder="Email address"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                      />
+                    </View>
+                  </View>
+
+                  <View style={styles.infoRow}>
+                    <Feather name="phone" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.infoLabel}>Phone (Hidden on card when saved)</Text>
+                      <TextInput
+                        style={styles.editInput}
+                        value={tempPhone}
+                        onChangeText={setTempPhone}
+                        placeholder="Phone number"
+                        keyboardType="phone-pad"
+                      />
+                    </View>
+                  </View>
+
+                  <View style={styles.infoRow}>
+                    <Feather name="linkedin" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.infoLabel}>LinkedIn Profile (Hidden on card when saved)</Text>
+                      <TextInput
+                        style={styles.editInput}
+                        value={tempLinkedin}
+                        onChangeText={setTempLinkedin}
+                        placeholder="https://linkedin.com/in/..."
+                        autoCapitalize="none"
+                      />
+                    </View>
+                  </View>
+                </>
+              )}
             </View>
 
             {/* Notes */}
@@ -163,6 +237,7 @@ export default function ReferralDetailScreen() {
                   value={tempNotes}
                   onChangeText={setTempNotes}
                   multiline
+                  placeholder="Notes"
                 />
               ) : (
                 <Text style={styles.notesText}>{notes}</Text>

@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { GoogleGenAI } from '@google/genai';
 import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 
 // Referrer Details Interface
 interface ReferrerDetails {
@@ -108,6 +109,8 @@ export default function EmailDraftScreen() {
   // State for attached resume
   const [attachmentUri, setAttachmentUri] = useState<string | null>(null);
   const [attachmentName, setAttachmentName] = useState<string | null>(null);
+  const [attachmentFile, setAttachmentFile] = useState<any | null>(null);
+  const [attachmentMimeType, setAttachmentMimeType] = useState<string>('application/pdf');
 
   // Initial prompt generation on mount
   useEffect(() => {
@@ -125,6 +128,8 @@ export default function EmailDraftScreen() {
         const asset = result.assets[0];
         setAttachmentUri(asset.uri);
         setAttachmentName(asset.name || 'resume.pdf');
+        if (asset.file) setAttachmentFile(asset.file);
+        if (asset.mimeType) setAttachmentMimeType(asset.mimeType);
       }
     } catch (error) {
       console.error('Error picking document:', error);
@@ -135,6 +140,7 @@ export default function EmailDraftScreen() {
   const handleRemoveAttachment = () => {
     setAttachmentUri(null);
     setAttachmentName(null);
+    setAttachmentFile(null);
   };
 
   const handleGenerateEmail = async (modelToUse: typeof model) => {
@@ -247,18 +253,61 @@ Return the result as a JSON object matching this schema:
       const emailRecipient = referrer.email || `${referrer.name.toLowerCase().replace(/\s+/g, '')}@example.com`;
 
       const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${apiBaseUrl}/api/send-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({
-          to: emailRecipient,
-          subject,
-          body,
-        }),
-      });
+      
+      let fetchOptions: RequestInit;
+
+      if (attachmentUri && attachmentName) {
+        const formData = new FormData();
+        formData.append('to', emailRecipient);
+        formData.append('subject', subject);
+        formData.append('body', body);
+        formData.append('jobId', jobDetails.jobId || '1');
+        formData.append('referralId', rId);
+
+        if (Platform.OS === 'web' && attachmentFile) {
+          // Web: use the native File object directly
+          formData.append('resume', attachmentFile);
+        } else {
+          // iOS / Android: read the file as base64, convert to Blob
+          const base64 = await FileSystem.readAsStringAsync(attachmentUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          const byteCharacters = atob(base64);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: attachmentMimeType || 'application/pdf' });
+          formData.append('resume', blob, attachmentName);
+        }
+
+        fetchOptions = {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            // Content-Type is automatically set to multipart/form-data with the correct boundary by fetch when passing FormData
+          },
+          body: formData,
+        };
+      } else {
+        fetchOptions = {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            to: emailRecipient,
+            subject,
+            body,
+            jobId: jobDetails.jobId || '1',
+            referralId: rId,
+          }),
+        };
+      }
+
+      const response = await fetch(`${apiBaseUrl}/api/send-email`, fetchOptions);
 
       const data = await response.json();
 

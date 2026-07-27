@@ -78,10 +78,10 @@ export default function ReferralsScreen() {
               <Text style={styles.filterMenuTitle}>Sort By Name</Text>
               <View style={styles.filterMenuOptions}>
                 <TouchableOpacity style={styles.filterMenuBtn} onPress={() => { setSortOrder('asc'); setShowFilters(false); }}>
-                  <Text style={[styles.filterMenuBtnText, sortOrder === 'asc' && { color: '#4F46E5', fontWeight: 'bold' }]}>A -> Z</Text>
+                  <Text style={[styles.filterMenuBtnText, sortOrder === 'asc' && { color: '#4F46E5', fontWeight: 'bold' }]}>{"A -> Z"}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.filterMenuBtn} onPress={() => { setSortOrder('desc'); setShowFilters(false); }}>
-                  <Text style={[styles.filterMenuBtnText, sortOrder === 'desc' && { color: '#4F46E5', fontWeight: 'bold' }]}>Z -> A</Text>
+                  <Text style={[styles.filterMenuBtnText, sortOrder === 'desc' && { color: '#4F46E5', fontWeight: 'bold' }]}>{"Z -> A"}</Text>
                 </TouchableOpacity>
               </View>
 

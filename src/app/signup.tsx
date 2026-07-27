@@ -9,7 +9,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function SignupScreen() {
   const router = useRouter();
-  
+
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -113,12 +113,12 @@ export default function SignupScreen() {
       <Animated.View style={[styles.backgroundContainer, { transform: [{ scale }] }]}>
         <LinearGradient
           colors={['#0F172A', '#1E293B', '#161C33']}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         />
       </Animated.View>
-      
+
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -158,10 +158,10 @@ export default function SignupScreen() {
               <View style={styles.formContainer}>
                 <Text style={styles.welcomeText}>What is your name?</Text>
                 <Text style={styles.subtitle}>Enter your full name to display on your network card.</Text>
-                
+
                 <View style={styles.inputContainer}>
                   <Feather name="user" size={20} color="#8E9BB3" style={styles.inputIcon} />
-                  <TextInput 
+                  <TextInput
                     style={styles.input}
                     placeholder="Full Name"
                     placeholderTextColor="#8E9BB3"
@@ -177,10 +177,10 @@ export default function SignupScreen() {
               <View style={styles.formContainer}>
                 <Text style={styles.welcomeText}>How can we reach you?</Text>
                 <Text style={styles.subtitle}>These details are used to receive updates and refer candidates.</Text>
-                
+
                 <View style={styles.inputContainer}>
                   <Feather name="mail" size={20} color="#8E9BB3" style={styles.inputIcon} />
-                  <TextInput 
+                  <TextInput
                     style={styles.input}
                     placeholder="Email address"
                     placeholderTextColor="#8E9BB3"
@@ -193,7 +193,7 @@ export default function SignupScreen() {
 
                 <View style={styles.inputContainer}>
                   <Feather name="phone" size={20} color="#8E9BB3" style={styles.inputIcon} />
-                  <TextInput 
+                  <TextInput
                     style={styles.input}
                     placeholder="Phone number"
                     placeholderTextColor="#8E9BB3"
@@ -210,10 +210,10 @@ export default function SignupScreen() {
               <View style={styles.formContainer}>
                 <Text style={styles.welcomeText}>What is your profession?</Text>
                 <Text style={styles.subtitle}>Tell us your job role or primary field of expertise.</Text>
-                
+
                 <View style={styles.inputContainer}>
                   <Feather name="briefcase" size={20} color="#8E9BB3" style={styles.inputIcon} />
-                  <TextInput 
+                  <TextInput
                     style={styles.input}
                     placeholder="e.g. Software Engineer, Designer"
                     placeholderTextColor="#8E9BB3"
@@ -229,10 +229,10 @@ export default function SignupScreen() {
               <View style={styles.formContainer}>
                 <Text style={styles.welcomeText}>Where do you work/study?</Text>
                 <Text style={styles.subtitle}>Enter your current company, university, or organization.</Text>
-                
+
                 <View style={styles.inputContainer}>
                   <Feather name="home" size={20} color="#8E9BB3" style={styles.inputIcon} />
-                  <TextInput 
+                  <TextInput
                     style={styles.input}
                     placeholder="e.g. Emerson, Google, MIT"
                     placeholderTextColor="#8E9BB3"
@@ -248,10 +248,10 @@ export default function SignupScreen() {
               <View style={styles.formContainer}>
                 <Text style={styles.welcomeText}>Secure your account</Text>
                 <Text style={styles.subtitle}>Choose a secure password with at least 6 characters.</Text>
-                
+
                 <View style={styles.inputContainer}>
                   <Feather name="lock" size={20} color="#8E9BB3" style={styles.inputIcon} />
-                  <TextInput 
+                  <TextInput
                     style={styles.input}
                     placeholder="Password"
                     placeholderTextColor="#8E9BB3"
@@ -268,7 +268,7 @@ export default function SignupScreen() {
               <View style={styles.formContainer}>
                 <Text style={styles.welcomeText}>Review details</Text>
                 <Text style={styles.subtitle}>Confirm your registration details are correct.</Text>
-                
+
                 <View style={styles.reviewWrapper}>
                   <View style={styles.reviewRow}>
                     <Text style={styles.reviewLabel}>Name</Text>
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0F172A',
   },
   backgroundContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   safeArea: {
     flex: 1,
