@@ -5,11 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
-
-const MOCK_JOBS = [
-  { id: '1', role: 'Senior Frontend Engineer', company: 'Emerson', time: '2h', status: 'Email Sent', statusColor: '#059669', statusBg: '#ECFDF5', statusBorder: '#D1FAE5', dotColor: '#10B981', referrer: 'Nitin Pansare' },
-  { id: '2', role: 'Software Engineer II', company: 'Amazon', time: '1d', status: 'Pending AI Draft', statusColor: '#D97706', statusBg: '#FFFBEB', statusBorder: '#FEF3C7', dotColor: '#FBBF24', referrer: 'Yogesh' },
-];
+import { MOCK_JOBS } from '../../data/mockData';
 
 export default function JobsScreen() {
   const router = useRouter();

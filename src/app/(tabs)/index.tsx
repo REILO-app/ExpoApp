@@ -5,15 +5,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
+import { MOCK_REFERRALS } from '../../data/mockData';
+
 const FILTERS = ['All', 'Pending', 'Accepted', 'Declined', 'No Response'];
 
-const MOCK_REFERRALS = [
-  { id: '1', name: 'Nitin Pansare', role: 'Assoc. Director', time: '2h', status: 'Accepted', statusColor: '#059669', statusBg: '#ECFDF5', statusBorder: '#D1FAE5', dotColor: '#10B981' },
-  { id: '2', name: 'Yogesh', role: 'Software Dev', time: '1d', status: 'Accepted', statusColor: '#059669', statusBg: '#ECFDF5', statusBorder: '#D1FAE5', dotColor: '#10B981' },
-  { id: '3', name: 'Bhavik Mer', role: 'VP Engineering', time: '3d', status: 'Pending', statusColor: '#D97706', statusBg: '#FFFBEB', statusBorder: '#FEF3C7', dotColor: '#FBBF24' },
-  { id: '4', name: 'Ajay Joshi', role: 'Global Tech Lead', time: '4d', status: 'No Response', statusColor: '#64748B', statusBg: '#F8FAFC', statusBorder: '#E2E8F0', dotColor: '#CBD5E1' },
-  { id: '5', name: 'Giridhar S.', role: 'Software Dev', time: '1w', status: 'Declined', statusColor: '#E11D48', statusBg: '#FFF1F2', statusBorder: '#FFE4E6', dotColor: '#F43F5E' },
-];
+
 
 export default function DashboardScreen() {
   const router = useRouter();

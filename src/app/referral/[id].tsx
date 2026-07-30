@@ -5,20 +5,23 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { useState } from 'react';
+import { MOCK_REFERRALS } from '../../data/mockData';
 
 export default function ReferralDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
 
-  // Primary Editable Profile States
-  const [name, setName] = useState('Nitin Pansare');
-  const [company, setCompany] = useState('Emerson');
-  const [role, setRole] = useState('Associate Director Quality, India');
-  const [location, setLocation] = useState('Pune, MH, India');
-  const [email, setEmail] = useState('prasadpansare19@gmail.com');
-  const [phone, setPhone] = useState('+91 98765 43210');
-  const [linkedin, setLinkedin] = useState('https://linkedin.com/in/nitinpansare');
-  const [notes, setNotes] = useState('He is my father, and he is willing to refer me. I have proved myself to him that i am worth it. So he is willing to refer to any upcoming jobs');
+  const referral = MOCK_REFERRALS.find(r => r.id === id);
+
+  // Primary Editable Profile States — seeded from shared data
+  const [name, setName] = useState(referral?.name ?? '');
+  const [company, setCompany] = useState(referral?.company ?? '');
+  const [role, setRole] = useState(referral?.role ?? '');
+  const [location, setLocation] = useState(referral?.location ?? '');
+  const [email, setEmail] = useState(referral?.email ?? '');
+  const [phone, setPhone] = useState(referral?.phone ?? '');
+  const [linkedin, setLinkedin] = useState(referral?.linkedin ?? '');
+  const [notes, setNotes] = useState(referral?.notes ?? '');
 
   // Edit Toggles & Temporary State
   const [isEditing, setIsEditing] = useState(false);

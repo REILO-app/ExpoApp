@@ -6,45 +6,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-
-const MOCK_JOBS: Record<string, {
-  id: string; company: string; role: string; jobId: string; jd: string; link: string;
-  status: string; statusColor: string; statusBg: string; referrer: string; location: string; type: string;
-}> = {
-  '1': {
-    id: '1',
-    company: 'Emerson',
-    role: 'Senior Frontend Engineer',
-    jobId: 'EMR-2026-FE-4812',
-    jd: `We are looking for a Senior Frontend Engineer to join our growing team at Emerson.\n\nResponsibilities:\n• Build and maintain high-quality web and mobile applications\n• Collaborate with designers and backend engineers\n• Write clean, maintainable, and well-tested code\n• Mentor junior engineers and conduct code reviews\n• Drive technical decisions for frontend architecture\n\nRequirements:\n• 5+ years of experience in frontend development\n• Strong proficiency in React, TypeScript, and modern CSS\n• Experience with React Native is a plus\n• Excellent problem-solving and communication skills\n• Bachelor's degree in Computer Science or equivalent`,
-    link: 'https://careers.emerson.com/jobs/senior-frontend-engineer',
-    status: 'Email Sent',
-    statusColor: '#059669',
-    statusBg: '#ECFDF5',
-    referrer: 'Nitin Pansare',
-    location: 'Pune, India (Hybrid)',
-    type: 'Full-time',
-  },
-  '2': {
-    id: '2',
-    company: 'Amazon',
-    role: 'Software Engineer II',
-    jobId: 'AMZ-SDE2-2026-001',
-    jd: `Amazon is seeking a Software Engineer II to build customer-facing products at global scale.\n\nResponsibilities:\n• Design, develop and deploy scalable software services\n• Work in an agile environment with fast iteration cycles\n• Participate in on-call rotations and drive incident resolution\n• Write high quality technical documentation\n\nRequirements:\n• 3+ years of software development experience\n• Strong knowledge of data structures and algorithms\n• Experience with distributed systems and microservices\n• Proficiency in at least one OOP language (Java, Python, Go)\n• Strong verbal and written communication skills`,
-    link: 'https://www.amazon.jobs/en/jobs/software-engineer-ii',
-    status: 'Pending AI Draft',
-    statusColor: '#D97706',
-    statusBg: '#FFFBEB',
-    referrer: 'Yogesh',
-    location: 'Bangalore, India (On-site)',
-    type: 'Full-time',
-  },
-};
+import { MOCK_JOBS } from '../../data/mockData';
 
 export default function JobDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const job = MOCK_JOBS[id as string];
+  const job = MOCK_JOBS.find(j => j.id === id);
 
   if (!job) {
     return (
