@@ -1,16 +1,29 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { fetchNotifications } from '../services/api';
 
 export default function NotificationsScreen() {
   const router = useRouter();
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const MOCK_NOTIFICATIONS = [
-    { id: '1', title: 'Connection Request Accepted!', message: 'Nitin Pansare accepted your connection request.', time: '2m ago', type: 'success' },
-    { id: '2', title: 'Referral Request Approved!', message: 'Hurray! Nitin Pansare has referred you for the job!', time: '1h ago', type: 'success' },
-    { id: '3', title: 'Connection Request Sent', message: 'You sent a connection request to Bhavik Mer.', time: '1d ago', type: 'info' },
-  ];
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  const loadNotifications = async () => {
+    try {
+      const data = await fetchNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -23,11 +36,16 @@ export default function NotificationsScreen() {
           <View style={styles.placeholder} />
         </View>
 
-        <FlatList
-          data={MOCK_NOTIFICATIONS}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
+        {loading ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#4F46E5" />
+          </View>
+        ) : (
+          <FlatList
+            data={notifications}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
             <View style={styles.notificationCard}>
               <View style={[styles.iconContainer, item.type === 'success' ? styles.iconSuccess : styles.iconInfo]}>
                 <Feather 
@@ -44,6 +62,7 @@ export default function NotificationsScreen() {
             </View>
           )}
         />
+        )}
       </SafeAreaView>
     </View>
   );

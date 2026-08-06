@@ -1,11 +1,47 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList } from 'react-native';
+import { useState, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Alert, Animated, PanResponder } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { MOCK_REFERRALS } from '../../data/mockData';
+import { deleteReferral, fetchReferrals } from '../../services/api';
+import { EmptyState } from '../../components/EmptyState';
+
+function SwipeToDeleteRow({ children, onDelete }: { children: React.ReactNode; onDelete: () => void }) {
+  const translateX = useRef(new Animated.Value(0)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 10,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dx < 0) {
+          translateX.setValue(Math.max(-96, Math.min(0, gestureState.dx)));
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dx < -80) {
+          Animated.spring(translateX, { toValue: -96, useNativeDriver: true }).start();
+          onDelete();
+        } else {
+          Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
+        }
+      },
+    })
+  ).current;
+
+  return (
+    <View style={styles.swipeContainer}>
+      <View style={styles.deleteBackground}>
+        <Feather name="trash-2" size={18} color="#FFFFFF" />
+        <Text style={styles.deleteLabel}>Delete</Text>
+      </View>
+      <Animated.View style={[styles.swipeContent, { transform: [{ translateX }] }]} {...panResponder.panHandlers}>
+        {children}
+      </Animated.View>
+    </View>
+  );
+}
 
 export default function ReferralsScreen() {
   const router = useRouter();
@@ -13,9 +49,30 @@ export default function ReferralsScreen() {
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null);
+  
+  const [referrals, setReferrals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  let filteredReferrals = MOCK_REFERRALS.filter(ref => {
-    const matchesFilter = activeFilter === 'All' || ref.status === activeFilter;
+  useFocusEffect(
+    useCallback(() => {
+      loadReferrals();
+    }, [])
+  );
+
+  const loadReferrals = async () => {
+    try {
+      const data = await fetchReferrals();
+      setReferrals(data);
+    } catch (error) {
+      console.error('Failed to load referrals', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  let filteredReferrals = referrals.filter(ref => {
+    const normalizedStatus = ref.status === 'Declined' ? 'Rejected' : ref.status;
+    const matchesFilter = activeFilter === 'All' || normalizedStatus === activeFilter;
     const matchesSearch = ref.name.toLowerCase().includes(searchQuery.toLowerCase()) || ref.role.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
@@ -26,6 +83,46 @@ export default function ReferralsScreen() {
       return b.name.localeCompare(a.name);
     });
   }
+
+  const handleDelete = (id: string) => {
+    Alert.alert('Delete referral?', 'This will remove the referral from your list.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteReferral(id);
+            setReferrals(prev => prev.filter(ref => ref.id !== id));
+          } catch (error) {
+            console.error('Failed to delete referral', error);
+            Alert.alert('Error', 'Failed to delete referral');
+          }
+        },
+      },
+    ]);
+  };
+
+  const renderEmpty = () => {
+    if (referrals.length === 0) {
+      return (
+        <EmptyState
+          icon="user-plus"
+          title="No referrals added yet"
+          subtitle="Add contacts from your network who can refer you when the right role opens up."
+          actionLabel="Add your first referral"
+          onAction={() => router.push('/add-referral')}
+        />
+      );
+    }
+    return (
+      <EmptyState
+        icon="search"
+        title="No matches found"
+        subtitle="Try adjusting your search or filters to find a referral."
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -81,7 +178,7 @@ export default function ReferralsScreen() {
 
               <Text style={styles.filterMenuTitle}>Filter By Status</Text>
               <View style={styles.filterMenuOptions}>
-                {['All', 'Pending', 'Accepted', 'Declined', 'No Response'].map(f => (
+                {['All', 'Pending', 'Accepted', 'Rejected', 'No Response'].map(f => (
                   <TouchableOpacity key={f} style={styles.filterMenuBtn} onPress={() => { setActiveFilter(f); setShowFilters(false); }}>
                     <Text style={[styles.filterMenuBtnText, activeFilter === f && { color: '#4F46E5', fontWeight: 'bold' }]}>{f}</Text>
                   </TouchableOpacity>
@@ -92,36 +189,46 @@ export default function ReferralsScreen() {
         </View>
 
         {/* List Items */}
-        <FlatList
-          style={{ flex: 1 }}
-          data={filteredReferrals}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.referralCard} onPress={() => router.push(`/referral/${item.id}`)}>
-              <View style={styles.avatarContainer}>
-                <View style={styles.referralAvatarPlaceholder}>
-                  <Feather name="user" size={20} color="#8E9BB3" />
-                </View>
-                <View style={[styles.statusDot, { borderColor: '#FFFFFF', backgroundColor: item.dotColor }]} />
-              </View>
+        {loading ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#6366F1" />
+          </View>
+        ) : (
+          <FlatList
+            style={{ flex: 1 }}
+            data={filteredReferrals}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={[styles.listContent, filteredReferrals.length === 0 && styles.listContentEmpty]}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={renderEmpty}
+            renderItem={({ item }) => (
+              <SwipeToDeleteRow onDelete={() => handleDelete(item.id)}>
+                <View style={styles.referralCard}>
+                  <TouchableOpacity style={styles.referralContent} onPress={() => router.push(`/referral/${item.id}`)}>
+                    <View style={styles.avatarContainer}>
+                      <View style={styles.referralAvatarPlaceholder}>
+                        <Feather name="user" size={20} color="#8E9BB3" />
+                      </View>
+                      <View style={[styles.statusDot, { borderColor: '#FFFFFF', backgroundColor: item.dotColor || '#000' }]} />
+                    </View>
 
-              <View style={styles.referralInfo}>
-                <Text style={styles.referralName}>{item.name}</Text>
-                <Text style={styles.referralRole} numberOfLines={1}>{item.role}</Text>
-              </View>
+                    <View style={styles.referralInfo}>
+                      <Text style={styles.referralName}>{item.name}</Text>
+                      <Text style={styles.referralRole} numberOfLines={1}>{item.role}</Text>
+                    </View>
 
-              <View style={styles.referralRight}>
-                <Text style={styles.referralTime}>{item.time}</Text>
-                <View style={[styles.statusPill, { backgroundColor: item.statusBg, borderColor: item.statusBorder, borderWidth: 1 }]}>
-                  <Text style={[styles.statusText, { color: item.statusColor }]}>{item.status}</Text>
+                    <View style={styles.referralRight}>
+                      <Text style={styles.referralTime}>{item.time}</Text>
+                      <View style={[styles.statusPill, { backgroundColor: item.statusBg, borderColor: item.statusBorder, borderWidth: 1 }]}>
+                        <Text style={[styles.statusText, { color: item.statusColor }]}>{item.status}</Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
                 </View>
-              </View>
-            </TouchableOpacity>
-          )}
+              </SwipeToDeleteRow>
+            )}
         />
-
+      )}
       </SafeAreaView>
     </View>
   );
@@ -245,12 +352,16 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 100, // For floating tab bar
   },
+  listContentEmpty: {
+    flexGrow: 2,
+    justifyContent: 'center',
+  },
   referralCard: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 14,
-    marginBottom: 12,
+    
     borderWidth: 1,
     borderColor: '#F1F5F9',
     shadowColor: '#000',
@@ -259,6 +370,34 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 2,
     alignItems: 'center',
+  },
+  referralContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  swipeContainer: {
+    marginBottom: 12,
+  },
+  deleteBackground: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 96,
+    backgroundColor: '#DC2626',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  deleteLabel: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  swipeContent: {
+    zIndex: 1,
   },
   avatarContainer: {
     position: 'relative',

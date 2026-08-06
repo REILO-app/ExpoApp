@@ -1,10 +1,53 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { addReferral } from '../services/api';
 
 export default function AddReferralScreen() {
   const router = useRouter();
+  const [name, setName] = useState('');
+  const [company, setCompany] = useState('');
+  const [role, setRole] = useState('');
+  const [linkedin, setLinkedin] = useState('');
+  const [email, setEmail] = useState('');
+  const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!name || !company || !role || !email) return;
+    setLoading(true);
+    try {
+      const result = await addReferral({
+        name,
+        company,
+        role,
+        linkedin,
+        email,
+        notes,
+        status: 'Pending',
+        time: 'Just now',
+        statusColor: '#D97706',
+        statusBg: '#FFFBEB',
+        statusBorder: '#FEF3C7',
+        dotColor: '#FBBF24',
+      });
+
+      if (result.inviteEmailSent === false) {
+        Alert.alert(
+          'Referral added',
+          'Your referral was saved, but the invite email could not be sent. Please check the email address and try again later.'
+        );
+      }
+
+      router.back();
+    } catch (error) {
+      console.error('Failed to add referral', error);
+      Alert.alert('Failed to add referral', 'Make sure you are logged in, the email is valid, and the API server is running.');
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -20,27 +63,28 @@ export default function AddReferralScreen() {
         <ScrollView contentContainerStyle={styles.formContainer}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Full Name</Text>
-            <TextInput style={styles.input} placeholder="e.g. Nitin Pansare" />
+            <TextInput style={styles.input} placeholder="e.g. Nitin Pansare" value={name} onChangeText={setName} />
           </View>
           
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Company</Text>
-            <TextInput style={styles.input} placeholder="e.g. Emerson" />
+            <TextInput style={styles.input} placeholder="e.g. Emerson" value={company} onChangeText={setCompany} />
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Role</Text>
-            <TextInput style={styles.input} placeholder="e.g. Associate Director" />
+            <TextInput style={styles.input} placeholder="e.g. Associate Director" value={role} onChangeText={setRole} />
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>LinkedIn URL</Text>
-            <TextInput style={styles.input} placeholder="https://linkedin.com/in/..." />
+            <TextInput style={styles.input} placeholder="https://linkedin.com/in/..." value={linkedin} onChangeText={setLinkedin} />
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email Address</Text>
-            <TextInput style={styles.input} placeholder="email@example.com" keyboardType="email-address" />
+            <TextInput style={styles.input} placeholder="email@example.com" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
+            <Text style={styles.helperText}>An invite email will be sent asking if they are willing to refer you.</Text>
           </View>
 
           <View style={styles.inputGroup}>
@@ -50,11 +94,13 @@ export default function AddReferralScreen() {
               placeholder="How do you know this person?"
               multiline
               numberOfLines={4}
+              value={notes}
+              onChangeText={setNotes}
             />
           </View>
 
-          <TouchableOpacity style={styles.submitButton} onPress={() => router.back()}>
-            <Text style={styles.submitButtonText}>Add Referral</Text>
+          <TouchableOpacity style={[styles.submitButton, (!name || !company || !role || !email) && { opacity: 0.5 }]} onPress={handleSubmit} disabled={!name || !company || !role || !email || loading}>
+            {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.submitButtonText}>Add Referral & Send Invite</Text>}
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -103,6 +149,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#374151',
     marginBottom: 8,
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 6,
+    lineHeight: 18,
   },
   input: {
     backgroundColor: '#FFFFFF',

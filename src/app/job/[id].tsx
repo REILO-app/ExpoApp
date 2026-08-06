@@ -6,17 +6,41 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { MOCK_JOBS } from '../../data/mockData';
+import { useState, useEffect } from 'react';
+import { fetchJobById } from '../../services/api';
 
 export default function JobDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const job = MOCK_JOBS.find(j => j.id === id);
+  const [job, setJob] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadJob = async () => {
+      try {
+        const data = await fetchJobById(id);
+        setJob(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) loadJob();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#080d18ff' }}>
+        <Text style={{ color: 'white' }}>Loading...</Text>
+      </View>
+    );
+  }
 
   if (!job) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Job not found</Text>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#080d18ff' }}>
+        <Text style={{ color: 'white' }}>Job not found</Text>
       </View>
     );
   }

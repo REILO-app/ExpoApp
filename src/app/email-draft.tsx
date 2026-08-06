@@ -18,6 +18,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { GoogleGenAI } from '@google/genai';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
+import { fetchReferralById } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 // Referrer Details Interface
 interface ReferrerDetails {
@@ -38,70 +40,23 @@ interface JobDetails {
   link?: string;
 }
 
-// Mock list of referrers to resolve details based on ID
-const REFERRERS: Record<string, ReferrerDetails> = {
-  '1': {
-    name: 'Nitin Pansare',
-    title: 'Associate Director Quality',
-    company: 'Emerson',
-    email: 'prasadpansare19@gmail.com',
-    notes: 'He is my father, and he is willing to refer me. I have proved myself to him that i am worth it. So he is willing to refer to any upcoming jobs'
-  },
-  '2': {
-    name: 'Yogesh',
-    title: 'Software Dev',
-    company: 'Emerson',
-    email: 'yogesh@emerson.com',
-    notes: 'Professional acquaintance from previous project collaboration.'
-  },
-  '3': {
-    name: 'Bhavik Mer',
-    title: 'VP Engineering',
-    company: 'TechCorp',
-    email: 'bhavik.mer@techcorp.com',
-    notes: 'Former engineering manager at my previous company.'
-  },
-  '4': {
-    name: 'Ajay Joshi',
-    title: 'Global Tech Lead',
-    company: 'InnoSystems',
-    email: 'ajay.joshi@innosystems.com',
-    notes: 'Met at a local tech meetup and discussed frontend architectures.'
-  },
-  '5': {
-    name: 'Giridhar S.',
-    title: 'Software Dev',
-    company: 'DevFlow',
-    email: 'giridhar.s@devflow.com',
-    notes: 'College alumni who works in the target team.'
-  }
-};
-
 export default function EmailDraftScreen() {
   const router = useRouter();
+  const { user } = useAuth();
 
   // Retrieve job and referral parameters from router params
   const { referralId, role, company, jobId, location, jd, link } = useLocalSearchParams();
-
-  // Retrieve default referrer or resolve by referralId
   const rId = Array.isArray(referralId) ? referralId[0] : referralId || '1';
-  const referrer = REFERRERS[rId] || REFERRERS['1'];
-
-  // Construct job details
-  const jobDetails: JobDetails = {
-    role: (Array.isArray(role) ? role[0] : role) || 'Senior Frontend Engineer',
-    company: (Array.isArray(company) ? company[0] : company) || 'Emerson',
-    jobId: (Array.isArray(jobId) ? jobId[0] : jobId) || '',
-    location: (Array.isArray(location) ? location[0] : location) || 'Pune, India',
-    jd: (Array.isArray(jd) ? jd[0] : jd) || '',
-    link: (Array.isArray(link) ? link[0] : link) || ''
-  };
 
   // State Management
   const [model] = useState<'gemini-3.5-flash'>('gemini-3.5-flash');
   const [generating, setGenerating] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
   const [sending, setSending] = useState(false);
+  const [loadingInitial, setLoadingInitial] = useState(true);
+
+  const [referrer, setReferrer] = useState<ReferrerDetails>({ name: '' });
+  const [jobDetails, setJobDetails] = useState<JobDetails>({ role: '', company: '' });
 
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
@@ -112,10 +67,42 @@ export default function EmailDraftScreen() {
   const [attachmentFile, setAttachmentFile] = useState<any | null>(null);
   const [attachmentMimeType, setAttachmentMimeType] = useState<string>('application/pdf');
 
-  // Initial prompt generation on mount
   useEffect(() => {
-    handleGenerateEmail(model);
-  }, []);
+    const initialize = async () => {
+      try {
+        let referralData: any = {};
+        if (rId) {
+          referralData = await fetchReferralById(rId);
+        }
+        
+        const refDetails = {
+          name: referralData.name || '',
+          title: referralData.role || '',
+          company: referralData.company || '',
+          email: referralData.email || '',
+          notes: referralData.notes || '',
+        };
+        setReferrer(refDetails);
+
+        const jDetails = {
+          role: (Array.isArray(role) ? role[0] : role) || referralData.role || '',
+          company: (Array.isArray(company) ? company[0] : company) || referralData.company || '',
+          jobId: (Array.isArray(jobId) ? jobId[0] : jobId) || '',
+          location: (Array.isArray(location) ? location[0] : location) || referralData.location || '',
+          jd: (Array.isArray(jd) ? jd[0] : jd) || '',
+          link: (Array.isArray(link) ? link[0] : link) || ''
+        };
+        setJobDetails(jDetails);
+        setLoadingInitial(false);
+        handleGenerateEmail(model, refDetails, jDetails);
+      } catch (err) {
+        console.error(err);
+        setLoadingInitial(false);
+      }
+    };
+    initialize();
+  }, [rId]);
+
 
   const handlePickDocument = async () => {
     try {
@@ -143,7 +130,7 @@ export default function EmailDraftScreen() {
     setAttachmentFile(null);
   };
 
-  const handleGenerateEmail = async (modelToUse: typeof model) => {
+  const handleGenerateEmail = async (modelToUse: typeof model, currentReferrer = referrer, currentJob = jobDetails) => {
     setGenerating(true);
     setRateLimited(false);
 
@@ -166,21 +153,21 @@ export default function EmailDraftScreen() {
 Write a referral request email using the details below:
 
 SENDER/CANDIDATE DETAILS:
-- Name: Prasad Pansare
+- Name: ${user?.name || 'Candidate'}
 
 REFERRER DETAILS (the person being asked):
-- Name: ${referrer.name}
-${referrer.company ? `- Company: ${referrer.company}` : ''}
-${referrer.title ? `- Role/Title: ${referrer.title}` : ''}
-${referrer.notes ? `- Relationship / Connection Notes: ${referrer.notes}` : ''}
+- Name: ${currentReferrer.name}
+${currentReferrer.company ? `- Company: ${currentReferrer.company}` : ''}
+${currentReferrer.title ? `- Role/Title: ${currentReferrer.title}` : ''}
+${currentReferrer.notes ? `- Relationship / Connection Notes: ${currentReferrer.notes}` : ''}
 
 TARGET JOB DETAILS:
-- Role / Title: ${jobDetails.role}
-- Company: ${jobDetails.company}
-${jobDetails.location ? `- Location: ${jobDetails.location}` : ''}
-${jobDetails.jobId ? `- Job ID: ${jobDetails.jobId}` : ''}
-${jobDetails.link ? `- Job URL: ${jobDetails.link}` : ''}
-${jobDetails.jd ? `- Job Description:\n${jobDetails.jd}` : ''}
+- Role / Title: ${currentJob.role}
+- Company: ${currentJob.company}
+${currentJob.location ? `- Location: ${currentJob.location}` : ''}
+${currentJob.jobId ? `- Job ID: ${currentJob.jobId}` : ''}
+${currentJob.link ? `- Job URL: ${currentJob.link}` : ''}
+${currentJob.jd ? `- Job Description:\n${currentJob.jd}` : ''}
 
 INSTRUCTIONS:
 1. Compose a highly professional email requesting a job referral for this target job.
@@ -232,15 +219,15 @@ Return the result as a JSON object matching this schema:
       );
 
       // Fallback draft content
-      setSubject(`Referral Request for ${jobDetails.role} role at ${jobDetails.company}`);
+      setSubject(`Referral Request for ${currentJob.role} role at ${currentJob.company}`);
       setBody(
-        `Hi ${referrer.name.split(' ')[0] || 'there'},\n\n` +
+        `Hi ${currentReferrer.name.split(' ')[0] || 'there'},\n\n` +
         `I hope this message finds you well!\n\n` +
-        `I saw that ${jobDetails.company} is currently hiring for a ${jobDetails.role}${jobDetails.location ? ` in ${jobDetails.location}` : ''}. Given your experience there${referrer.title ? ` as ${referrer.title}` : ''}, I wanted to ask if you would be open to referring me for this position.\n\n` +
+        `I saw that ${currentJob.company} is currently hiring for a ${currentJob.role}${currentJob.location ? ` in ${currentJob.location}` : ''}. Given your experience there${currentReferrer.title ? ` as ${currentReferrer.title}` : ''}, I wanted to ask if you would be open to referring me for this position.\n\n` +
         `I have attached my resume and the job link below for your convenience. I believe my background aligns well with the description and I would love the chance to apply.\n\n` +
         `If you're comfortable, I'd really appreciate your referral. If not, no worries at all!\n\n` +
         `Best regards,\n` +
-        `Prasad Pansare`
+        `${user?.name || 'Candidate'}`
       );
     } finally {
       setGenerating(false);
@@ -253,7 +240,7 @@ Return the result as a JSON object matching this schema:
       const emailRecipient = referrer.email || `${referrer.name.toLowerCase().replace(/\s+/g, '')}@example.com`;
 
       const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
-      
+
       let fetchOptions: RequestInit;
 
       if (attachmentUri && attachmentName) {
@@ -263,6 +250,10 @@ Return the result as a JSON object matching this schema:
         formData.append('body', body);
         formData.append('jobId', jobDetails.jobId || '1');
         formData.append('referralId', rId);
+        formData.append('senderName', user?.name || '');
+        formData.append('senderEmail', user?.email || '');
+        formData.append('senderPhone', '');
+        formData.append('senderLinkedin', '');
 
         if (Platform.OS === 'web' && attachmentFile) {
           // Web: use the native File object directly
@@ -286,7 +277,6 @@ Return the result as a JSON object matching this schema:
           method: 'POST',
           headers: {
             Accept: 'application/json',
-            // Content-Type is automatically set to multipart/form-data with the correct boundary by fetch when passing FormData
           },
           body: formData,
         };
@@ -303,6 +293,10 @@ Return the result as a JSON object matching this schema:
             body,
             jobId: jobDetails.jobId || '1',
             referralId: rId,
+            senderName: user?.name || '',
+            senderEmail: user?.email || '',
+            senderPhone: '',
+            senderLinkedin: '',
           }),
         };
       }
@@ -353,6 +347,9 @@ Return the result as a JSON object matching this schema:
           <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
 
             {/* Top Parameters Card */}
+            {loadingInitial ? (
+              <ActivityIndicator size="large" color="#6366F1" style={{ marginVertical: 20 }} />
+            ) : (
             <View style={styles.contextCard}>
               <View style={styles.contextHeader}>
                 <Feather name="send" size={16} color="#6366F1" />
@@ -365,6 +362,7 @@ Return the result as a JSON object matching this schema:
                 For: <Text style={styles.boldText}>{jobDetails.role}</Text> @ {jobDetails.company}
               </Text>
             </View>
+            )}
 
             {/* Resume Attachment Card */}
             <View style={styles.attachmentCard}>

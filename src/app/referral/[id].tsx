@@ -4,24 +4,47 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { useState } from 'react';
-import { MOCK_REFERRALS } from '../../data/mockData';
+import { useState, useEffect } from 'react';
+import { fetchReferralById } from '../../services/api';
 
 export default function ReferralDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
 
-  const referral = MOCK_REFERRALS.find(r => r.id === id);
+  const [referral, setReferral] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Primary Editable Profile States — seeded from shared data
-  const [name, setName] = useState(referral?.name ?? '');
-  const [company, setCompany] = useState(referral?.company ?? '');
-  const [role, setRole] = useState(referral?.role ?? '');
-  const [location, setLocation] = useState(referral?.location ?? '');
-  const [email, setEmail] = useState(referral?.email ?? '');
-  const [phone, setPhone] = useState(referral?.phone ?? '');
-  const [linkedin, setLinkedin] = useState(referral?.linkedin ?? '');
-  const [notes, setNotes] = useState(referral?.notes ?? '');
+  // Primary Editable Profile States
+  const [name, setName] = useState('');
+  const [company, setCompany] = useState('');
+  const [role, setRole] = useState('');
+  const [location, setLocation] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [linkedin, setLinkedin] = useState('');
+  const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    const loadReferral = async () => {
+      try {
+        const data = await fetchReferralById(id as string);
+        setReferral(data);
+        setName(data.name || '');
+        setCompany(data.company || '');
+        setRole(data.role || '');
+        setLocation(data.location || '');
+        setEmail(data.email || '');
+        setPhone(data.phone || '');
+        setLinkedin(data.linkedin || '');
+        setNotes(data.notes || '');
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) loadReferral();
+  }, [id]);
 
   // Edit Toggles & Temporary State
   const [isEditing, setIsEditing] = useState(false);
@@ -88,7 +111,17 @@ export default function ReferralDetailScreen() {
           <Feather name="chevron-left" size={24} color="#FFFFFF" />
         </TouchableOpacity>
 
-        {/* Header Profile */}
+        {loading ? (
+           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+             <Text style={{ color: 'white' }}>Loading...</Text>
+           </View>
+        ) : !referral ? (
+           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+             <Text style={{ color: 'white' }}>Referral not found.</Text>
+           </View>
+        ) : (
+          <>
+            {/* Header Profile */}
         <View style={styles.profileHeader}>
           <View style={styles.largeAvatarPlaceholder} />
           {isEditing ? (
@@ -105,8 +138,14 @@ export default function ReferralDetailScreen() {
           <Text style={styles.profileRole}>
             {role.split(',')[0]} . {company}
           </Text>
-          <View style={styles.statusPill}>
-            <Text style={styles.statusText}>Referral Accepted</Text>
+          <View style={[styles.statusPill, {
+            backgroundColor: referral.statusBg || '#FFFBEB',
+            borderColor: referral.statusBorder || '#FEF3C7',
+            borderWidth: 1,
+          }]}>
+            <Text style={[styles.statusText, { color: referral.statusColor || '#D97706' }]}>
+              {referral.status || 'Pending'}
+            </Text>
           </View>
           <View style={styles.socialIcons}>
             <TouchableOpacity style={styles.socialIcon} onPress={() => openSocialLink(linkedin)}>
@@ -251,52 +290,34 @@ export default function ReferralDetailScreen() {
             <View style={styles.card}>
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle}>Referral History</Text>
-                <Text style={styles.eventsCount}>4 events</Text>
+                <Text style={styles.eventsCount}>{referral.history?.length || 0} events</Text>
               </View>
 
               <View style={styles.historyTimeline}>
-                <View style={styles.historyItem}>
-                  <View style={styles.historyIconContainer}>
-                    <Feather name="send" size={12} color="#6366F1" />
+                {(!referral.history || referral.history.length === 0) ? (
+                  <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+                    <Text style={{ color: '#6B7280', fontSize: 14 }}>No events yet</Text>
                   </View>
-                  <View style={styles.historyLine} />
-                  <View style={styles.historyContent}>
-                    <Text style={styles.historyTitle}>Connection Request Sent</Text>
-                    <Text style={styles.historyDesc}>Connection Request was sent on June 7 2026</Text>
-                  </View>
-                </View>
-
-                <View style={styles.historyItem}>
-                  <View style={styles.historyIconContainer}>
-                    <Feather name="user-check" size={12} color="#10B981" />
-                  </View>
-                  <View style={styles.historyLine} />
-                  <View style={styles.historyContent}>
-                    <Text style={styles.historyTitle}>Connection Request Accepted!</Text>
-                    <Text style={styles.historyDesc}>Nitin Pansare accepted your connection request!</Text>
-                  </View>
-                </View>
-
-                <View style={styles.historyItem}>
-                  <View style={styles.historyIconContainer}>
-                    <Feather name="mail" size={12} color="#6366F1" />
-                  </View>
-                  <View style={styles.historyLine} />
-                  <View style={styles.historyContent}>
-                    <Text style={styles.historyTitle}>Referral Request Sent</Text>
-                    <Text style={styles.historyDesc}>Referral request for SDE 1 role at Emerson was sent to Nitin Pansare</Text>
-                  </View>
-                </View>
-
-                <View style={styles.historyItem}>
-                  <View style={styles.historyIconContainer}>
-                    <Feather name="check-circle" size={12} color="#10B981" />
-                  </View>
-                  <View style={styles.historyContent}>
-                    <Text style={styles.historyTitle}>Referral Request Approved!</Text>
-                    <Text style={styles.historyDesc}>Hurray! Nitin Pansare has referred you for the job! All the best for your application!</Text>
-                  </View>
-                </View>
+                ) : (
+                  referral.history.map((event: any, index: number) => {
+                    const isLast = index === referral.history.length - 1;
+                    return (
+                      <View key={index} style={styles.historyItem}>
+                        <View style={[styles.historyIconContainer, { backgroundColor: (event.color || '#6366F1') + '1A' }]}>
+                          <Feather name={(event.icon || 'clock') as any} size={12} color={event.color || '#6366F1'} />
+                        </View>
+                        {!isLast && <View style={styles.historyLine} />}
+                        <View style={styles.historyContent}>
+                          <Text style={styles.historyTitle}>{event.title}</Text>
+                          <Text style={styles.historyDesc}>
+                            {event.description}
+                            {event.timestamp && ` • ${new Date(event.timestamp).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`}
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  })
+                )}
               </View>
             </View>
           </View>
@@ -313,6 +334,8 @@ export default function ReferralDetailScreen() {
             <Text style={styles.askReferralButtonText}>Ask for Referral</Text>
           </TouchableOpacity>
         </View>
+        </>
+        )}
       </SafeAreaView>
     </View>
   );
@@ -397,7 +420,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   statusText: {
-    color: '#059669',
     fontSize: 12,
     fontWeight: 'bold',
   },

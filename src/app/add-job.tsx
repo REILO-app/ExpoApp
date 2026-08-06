@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { addJob } from '../services/api';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface JobFields {
@@ -151,15 +152,29 @@ export default function AddJobScreen() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!fields.role || !fields.company) {
       Alert.alert('Missing info', 'Role and Company are required.');
       return;
     }
-    // TODO: persist to state / backend
-    Alert.alert('Job Saved! ✅', `${fields.role} at ${fields.company} has been added.`, [
-      { text: 'OK', onPress: () => router.back() },
-    ]);
+    try {
+      setLoading(true);
+      await addJob({
+        ...fields,
+        status: 'Pending AI Draft',
+        referrer: 'To be found',
+        statusColor: '#D97706',
+        statusBg: '#FFFBEB',
+      });
+      Alert.alert('Job Saved! ✅', `${fields.role} at ${fields.company} has been added.`, [
+        { text: 'OK', onPress: () => router.replace('/(tabs)/jobs') },
+      ]);
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Failed to save job');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

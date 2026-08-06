@@ -5,10 +5,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { BlurView } from 'expo-blur';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { signOut, user } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  const handleSignOut = async () => {
+    await signOut();
+    // AuthGuard in _layout.tsx will redirect to /login automatically
+  };
 
   return (
     <View style={styles.container}>
@@ -38,8 +45,8 @@ export default function ProfileScreen() {
               <Feather name="camera" size={14} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.profileName}>Prasad Pansare</Text>
-          <Text style={styles.profileRole}>Software Engineer</Text>
+          <Text style={styles.profileName}>{user?.name ?? 'User'}</Text>
+          <Text style={styles.profileRole}>{user?.role || user?.email || ''}</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -62,7 +69,7 @@ export default function ProfileScreen() {
                 <Feather name="mail" size={18} color="#4B5563" />
               </View>
               <Text style={styles.settingLabel}>Email Address</Text>
-              <Text style={styles.settingValue}>prasad@example.com</Text>
+              <Text style={styles.settingValue}>{user?.email ?? ''}</Text>
             </View>
 
             <View style={styles.divider} />
@@ -94,7 +101,7 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.settingsSection}>
-            <TouchableOpacity style={styles.settingItem} onPress={() => router.replace('/login')}>
+            <TouchableOpacity style={styles.settingItem} onPress={handleSignOut}>
               <View style={[styles.settingIconContainer, { backgroundColor: '#FEE2E2' }]}>
                 <Feather name="log-out" size={18} color="#DC2626" />
               </View>

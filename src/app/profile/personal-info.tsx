@@ -1,17 +1,88 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { fetchUserProfile, updateUserProfile } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 export default function PersonalInfoScreen() {
   const router = useRouter();
-  const [name, setName] = useState('Prasad Pansare');
-  const [role, setRole] = useState('Software Engineer');
-  const [phone, setPhone] = useState('+1 234 567 890');
-  const [location, setLocation] = useState('Pune, India');
+  const { user, refreshUser } = useAuth();
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('');
+  const [phone, setPhone] = useState('');
+  const [location, setLocation] = useState('');
+  const [website, setWebsite] = useState('');
+  const [linkedin, setLinkedin] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      const profile = await fetchUserProfile();
+      if (profile) {
+        setName(profile.name || '');
+        setRole(profile.role || '');
+        setPhone(profile.phone || '');
+        setLocation(profile.location || '');
+        setWebsite(profile.website || '');
+        setLinkedin(profile.linkedin || '');
+      }
+    } catch (error) {
+      console.error('Failed to load profile', error);
+      if (user) {
+        setName(user.name || '');
+        setRole(user.role || '');
+        setPhone(user.phone || '');
+        setLocation(user.location || '');
+        setWebsite(user.website || '');
+        setLinkedin(user.linkedin || '');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!name.trim()) {
+      Alert.alert('Missing name', 'Please enter your full name.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await updateUserProfile({
+        name: name.trim(),
+        role: role.trim(),
+        phone: phone.trim(),
+        location: location.trim(),
+        website: website.trim(),
+        linkedin: linkedin.trim(),
+      });
+      await refreshUser();
+      router.back();
+    } catch (error) {
+      console.error('Failed to save profile', error);
+      Alert.alert('Save failed', 'Could not save your profile. Make sure the API server is running.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#6366F1" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -27,7 +98,6 @@ export default function PersonalInfoScreen() {
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Feather name="chevron-left" size={24} color="#FFFFFF" />
@@ -38,7 +108,6 @@ export default function PersonalInfoScreen() {
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.formContainer}>
-
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Full Name</Text>
               <View style={styles.inputWrapper}>
@@ -92,12 +161,43 @@ export default function PersonalInfoScreen() {
               </View>
             </View>
 
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Website</Text>
+              <View style={styles.inputWrapper}>
+                <Feather name="globe" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  value={website}
+                  onChangeText={setWebsite}
+                  placeholderTextColor="#9CA3AF"
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>LinkedIn</Text>
+              <View style={styles.inputWrapper}>
+                <Feather name="linkedin" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  value={linkedin}
+                  onChangeText={setLinkedin}
+                  placeholderTextColor="#9CA3AF"
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
           </View>
         </ScrollView>
 
         <View style={styles.bottomActionContainer}>
-          <TouchableOpacity style={styles.saveButton} onPress={() => router.back()}>
-            <Text style={styles.saveButtonText}>Save Changes</Text>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={saving}>
+            {saving ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.saveButtonText}>Save Changes</Text>
+            )}
           </TouchableOpacity>
         </View>
       </SafeAreaView>

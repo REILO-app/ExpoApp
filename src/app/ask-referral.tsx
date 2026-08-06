@@ -1,12 +1,75 @@
+import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { addJob, fetchReferralById, addReferralHistoryEvent } from '../services/api';
 
 export default function AskReferralScreen() {
   const router = useRouter();
   const { referralId } = useLocalSearchParams();
+
+  const [jobLink, setJobLink] = useState('');
+  const [role, setRole] = useState('');
+  const [company, setCompany] = useState('');
+  const [jd, setJd] = useState('');
+
+  const handleDraft = async () => {
+    const roleValue = role.trim();
+    const companyValue = company.trim();
+    const jobLinkValue = jobLink.trim();
+    const jdValue = jd.trim();
+
+    const params = new URLSearchParams();
+    if (referralId) params.append('referralId', Array.isArray(referralId) ? referralId[0] : referralId);
+    if (roleValue) params.append('role', roleValue);
+    if (companyValue) params.append('company', companyValue);
+    if (jobLinkValue) params.append('link', jobLinkValue);
+    if (jdValue) params.append('jd', jdValue);
+
+    if (roleValue || companyValue || jobLinkValue || jdValue) {
+      try {
+        const referralIdValue = Array.isArray(referralId) ? referralId[0] : referralId;
+        let referralName = 'Pending referral';
+
+        if (referralIdValue) {
+          try {
+            const referral = await fetchReferralById(referralIdValue);
+            referralName = referral?.name || referralName;
+
+            await addReferralHistoryEvent(referralIdValue, {
+              type: 'referral_requested',
+              title: 'Referral Request Sent',
+              description: `Referral request for ${roleValue || 'a role'} at ${companyValue || 'a company'} was sent to ${referralName}`,
+              icon: 'mail',
+              color: '#6366F1'
+            });
+          } catch (error) {
+            console.error('Failed to fetch referral or log history', error);
+          }
+        }
+
+        await addJob({
+          company: companyValue || 'Untitled Company',
+          role: roleValue || 'Untitled Role',
+          jobId: '',
+          location: '',
+          type: '',
+          jd: jdValue,
+          link: jobLinkValue,
+          status: 'Pending AI Draft',
+          referrer: referralName,
+          statusColor: '#D97706',
+          statusBg: '#FFFBEB',
+        });
+      } catch (error) {
+        console.error('Failed to save job from ask referral flow', error);
+      }
+    }
+
+    router.push(`/email-draft?${params.toString()}`);
+  };
 
   return (
     <View style={styles.container}>
@@ -35,27 +98,49 @@ export default function AskReferralScreen() {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Job Link or ID (Optional)</Text>
-            <TextInput style={styles.input} placeholder="e.g. https://careers.company.com/job/123" />
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. https://careers.company.com/job/123"
+              value={jobLink}
+              onChangeText={setJobLink}
+            />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Job Role</Text>
-            <TextInput style={styles.input} placeholder="e.g. Senior Frontend Engineer" />
+            <Text style={styles.label}>Job Role (Optional)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. Software Dev / Frontend Engineer"
+              value={role}
+              onChangeText={setRole}
+            />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Job Description</Text>
+            <Text style={styles.label}>Company (Optional)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. Orvera AI"
+              value={company}
+              onChangeText={setCompany}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Job Description (Optional)</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               placeholder="Paste the full job description here. This helps the AI write a highly relevant email highlighting your fit."
               multiline
               numberOfLines={8}
+              value={jd}
+              onChangeText={setJd}
             />
           </View>
 
           <TouchableOpacity
             style={styles.submitButton}
-            onPress={() => router.push(`/email-draft?referralId=${referralId}`)}
+            onPress={handleDraft}
           >
             <Feather name="zap" size={18} color="#FFFFFF" style={styles.submitIcon} />
             <Text style={styles.submitButtonText}>Draft Email with AI</Text>

@@ -1,23 +1,44 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, FlatList } from 'react-native';
+import { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { MOCK_REFERRALS } from '../../data/mockData';
+import { fetchReferrals } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import { EmptyState } from '../../components/EmptyState';
 
-const FILTERS = ['All', 'Pending', 'Accepted', 'Declined', 'No Response'];
-
-
+const FILTERS = ['All', 'Pending', 'Accepted', 'Rejected', 'No Response'];
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [referrals, setReferrals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredReferrals = MOCK_REFERRALS.filter(ref => {
-    const matchesFilter = activeFilter === 'All' || ref.status === activeFilter;
+  useFocusEffect(
+    useCallback(() => {
+      loadReferrals();
+    }, [])
+  );
+
+  const loadReferrals = async () => {
+    try {
+      const data = await fetchReferrals();
+      setReferrals(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredReferrals = referrals.filter(ref => {
+    const normalizedStatus = ref.status === 'Declined' ? 'Rejected' : ref.status;
+    const matchesFilter = activeFilter === 'All' || normalizedStatus === activeFilter;
     const matchesSearch = ref.name.toLowerCase().includes(searchQuery.toLowerCase()) || ref.role.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
@@ -27,6 +48,27 @@ export default function DashboardScreen() {
       <Text style={styles.listTitle}>Recent Referrals</Text>
     </View>
   );
+
+  const renderEmpty = () => {
+    if (referrals.length === 0) {
+      return (
+        <EmptyState
+          icon="users"
+          title="No referrals yet"
+          subtitle="Add people from your network who can refer you to jobs at their company."
+          actionLabel="Add your first referral"
+          onAction={() => router.push('/add-referral')}
+        />
+      );
+    }
+    return (
+      <EmptyState
+        icon="search"
+        title="No matches found"
+        subtitle="Try adjusting your search or filter to find what you're looking for."
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -52,7 +94,7 @@ export default function DashboardScreen() {
               </View>
               <View>
                 <Text style={styles.greeting}>Welcome back</Text>
-                <Text style={styles.userName}>Prasad Pansare</Text>
+                <Text style={styles.userName}>{user?.name || 'Guest'}</Text>
               </View>
             </View>
             <TouchableOpacity style={styles.bellIcon} onPress={() => router.push('/notifications')}>
@@ -86,22 +128,22 @@ export default function DashboardScreen() {
             <View style={styles.statsRowWrapper}>
               <View style={styles.statItem}>
                 <Text style={[styles.statLabel, { color: '#94A3B8' }]}>Total</Text>
-                <Text style={[styles.statValue, { color: '#0F172A' }]}>248</Text>
+                <Text style={[styles.statValue, { color: '#0F172A' }]}>{referrals.length}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Text style={[styles.statLabel, { color: '#818CF8' }]}>Active</Text>
-                <Text style={[styles.statValue, { color: '#4F46E5' }]}>142</Text>
+                <Text style={[styles.statValue, { color: '#4F46E5' }]}>{referrals.filter(r => r.status === 'Pending').length}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Text style={[styles.statLabel, { color: '#F59E0B' }]}>Pending</Text>
-                <Text style={[styles.statValue, { color: '#F59E0B' }]}>38</Text>
+                <Text style={[styles.statValue, { color: '#F59E0B' }]}>{referrals.filter(r => r.status === 'Pending').length}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Text style={[styles.statLabel, { color: '#10B981' }]}>Success</Text>
-                <Text style={[styles.statValue, { color: '#10B981' }]}>18%</Text>
+                <Text style={[styles.statValue, { color: '#10B981' }]}>{referrals.length > 0 ? Math.round((referrals.filter(r => r.status === 'Accepted').length / referrals.length) * 100) : 0}%</Text>
               </View>
             </View>
           </View>
@@ -123,12 +165,16 @@ export default function DashboardScreen() {
         </View>
 
         {/* Scrollable List */}
-        <FlatList
-          data={filteredReferrals}
+        {loading ? (
+          <ActivityIndicator size="large" color="#4F46E5" style={{ marginTop: 40 }} />
+        ) : (
+          <FlatList
+            data={filteredReferrals}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, filteredReferrals.length === 0 && styles.listContentEmpty]}
           showsVerticalScrollIndicator={false}
-          ListHeaderComponent={renderHeader}
+          ListHeaderComponent={filteredReferrals.length > 0 ? renderHeader : undefined}
+          ListEmptyComponent={renderEmpty}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.referralCard} onPress={() => router.push(`/referral/${item.id}`)}>
               <View style={styles.avatarContainer}>
@@ -152,6 +198,7 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           )}
         />
+        )}
       </SafeAreaView>
     </View>
   );
@@ -376,6 +423,10 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 20,
     paddingBottom: 100,
+  },
+  listContentEmpty: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   listHeader: {
     marginBottom: 8,
