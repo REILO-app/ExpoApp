@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence, getAuth } from 'firebase/auth';
+import { initializeAuth, getReactNativePersistence, getAuth, browserLocalPersistence } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -13,20 +14,23 @@ const firebaseConfig = {
 };
 
 let app;
-if (getApps().length) {
-  app = getApp();
-} else {
-  app = initializeApp(firebaseConfig as any);
-}
-
-// Use persistent auth so login survives app restarts
 let auth;
-try {
+
+const storageWrapper = {
+  getItem: (key: string) => AsyncStorage.getItem(key),
+  setItem: (key: string, value: string) => AsyncStorage.setItem(key, value),
+  removeItem: (key: string) => AsyncStorage.removeItem(key),
+};
+
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig as any);
   auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage),
+    persistence: Platform.OS === 'web' 
+      ? browserLocalPersistence 
+      : getReactNativePersistence(storageWrapper),
   });
-} catch {
-  // initializeAuth throws if already initialized (e.g. hot reload)
+} else {
+  app = getApp();
   auth = getAuth(app);
 }
 

@@ -92,9 +92,9 @@ const fallbackUserFromFirebase = (firebaseUser: FirebaseUser): User => ({
 // ─── Provider ────────────────────────────────────────────────────────────────
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser]       = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const pendingProfileRef     = useRef<SignUpProfile | null>(null);
+  const pendingProfileRef = useRef<SignUpProfile | null>(null);
 
   useEffect(() => {
     // Firebase will call this whenever the auth state changes —

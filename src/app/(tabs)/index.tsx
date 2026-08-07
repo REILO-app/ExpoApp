@@ -170,34 +170,34 @@ export default function DashboardScreen() {
         ) : (
           <FlatList
             data={filteredReferrals}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={[styles.listContent, filteredReferrals.length === 0 && styles.listContentEmpty]}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={filteredReferrals.length > 0 ? renderHeader : undefined}
-          ListEmptyComponent={renderEmpty}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.referralCard} onPress={() => router.push(`/referral/${item.id}`)}>
-              <View style={styles.avatarContainer}>
-                <View style={styles.referralAvatarPlaceholder}>
-                  <Feather name="user" size={20} color="#8E9BB3" />
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={[styles.listContent, filteredReferrals.length === 0 && styles.listContentEmpty]}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={filteredReferrals.length > 0 ? renderHeader : undefined}
+            ListEmptyComponent={renderEmpty}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.referralCard} onPress={() => router.push(`/referral/${item.id}`)}>
+                <View style={styles.avatarContainer}>
+                  <View style={styles.referralAvatarPlaceholder}>
+                    <Feather name="user" size={20} color="#8E9BB3" />
+                  </View>
+                  <View style={[styles.statusDot, { borderColor: '#FFFFFF', backgroundColor: item.dotColor }]} />
                 </View>
-                <View style={[styles.statusDot, { borderColor: '#FFFFFF', backgroundColor: item.dotColor }]} />
-              </View>
 
-              <View style={styles.referralInfo}>
-                <Text style={styles.referralName}>{item.name}</Text>
-                <Text style={styles.referralRole} numberOfLines={1}>{item.role}</Text>
-              </View>
-
-              <View style={styles.referralRight}>
-                <Text style={styles.referralTime}>{item.time}</Text>
-                <View style={[styles.statusPill, { backgroundColor: item.statusBg, borderColor: item.statusBorder, borderWidth: 1 }]}>
-                  <Text style={[styles.statusText, { color: item.statusColor }]}>{item.status}</Text>
+                <View style={styles.referralInfo}>
+                  <Text style={styles.referralName}>{item.name}</Text>
+                  <Text style={styles.referralRole} numberOfLines={1}>{item.role}</Text>
                 </View>
-              </View>
-            </TouchableOpacity>
-          )}
-        />
+
+                <View style={styles.referralRight}>
+                  <Text style={styles.referralTime}>{item.time}</Text>
+                  <View style={[styles.statusPill, { backgroundColor: item.statusBg, borderColor: item.statusBorder, borderWidth: 1 }]}>
+                    <Text style={[styles.statusText, { color: item.statusColor }]}>{item.status}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
         )}
       </SafeAreaView>
     </View>

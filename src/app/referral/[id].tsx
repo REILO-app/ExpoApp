@@ -112,229 +112,229 @@ export default function ReferralDetailScreen() {
         </TouchableOpacity>
 
         {loading ? (
-           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-             <Text style={{ color: 'white' }}>Loading...</Text>
-           </View>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ color: 'white' }}>Loading...</Text>
+          </View>
         ) : !referral ? (
-           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-             <Text style={{ color: 'white' }}>Referral not found.</Text>
-           </View>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ color: 'white' }}>Referral not found.</Text>
+          </View>
         ) : (
           <>
             {/* Header Profile */}
-        <View style={styles.profileHeader}>
-          <View style={styles.largeAvatarPlaceholder} />
-          {isEditing ? (
-            <TextInput
-              style={styles.editTitleInput}
-              value={tempName}
-              onChangeText={setTempName}
-              placeholder="Full Name"
-              placeholderTextColor="#8E9BB3"
-            />
-          ) : (
-            <Text style={styles.profileName}>{name}</Text>
-          )}
-          <Text style={styles.profileRole}>
-            {role.split(',')[0]} . {company}
-          </Text>
-          <View style={[styles.statusPill, {
-            backgroundColor: referral.statusBg || '#FFFBEB',
-            borderColor: referral.statusBorder || '#FEF3C7',
-            borderWidth: 1,
-          }]}>
-            <Text style={[styles.statusText, { color: referral.statusColor || '#D97706' }]}>
-              {referral.status || 'Pending'}
-            </Text>
-          </View>
-          <View style={styles.socialIcons}>
-            <TouchableOpacity style={styles.socialIcon} onPress={() => openSocialLink(linkedin)}>
-              <Feather name="linkedin" size={16} color="#FFFFFF" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialIcon} onPress={() => openSocialLink(`mailto:${email}`)}>
-              <Feather name="mail" size={16} color="#FFFFFF" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialIcon} onPress={() => openSocialLink(`tel:${phone}`)}>
-              <Feather name="phone" size={16} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-          {/* Cards */}
-          <View style={styles.cardsContainer}>
-            {/* Contact Info */}
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Contact Information</Text>
-                <View style={styles.editActionsWrapper}>
-                  {isEditing && (
-                    <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
-                      <Text style={styles.cancelText}>Cancel</Text>
-                    </TouchableOpacity>
-                  )}
-                  <TouchableOpacity onPress={handleEditToggle}>
-                    <Text style={styles.editButton}>
-                      {isEditing ? 'Save' : 'Edit'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Company */}
-              <View style={styles.infoRow}>
-                <Feather name="briefcase" size={18} color="#8E9BB3" style={styles.infoIcon} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.infoLabel}>Company</Text>
-                  {isEditing ? (
-                    <TextInput style={styles.editInput} value={tempCompany} onChangeText={setTempCompany} placeholder="Company" />
-                  ) : (
-                    <Text style={styles.infoValue}>{company}</Text>
-                  )}
-                </View>
-              </View>
-
-              {/* Role */}
-              <View style={styles.infoRow}>
-                <Feather name="user" size={18} color="#8E9BB3" style={styles.infoIcon} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.infoLabel}>Role</Text>
-                  {isEditing ? (
-                    <TextInput style={styles.editInput} value={tempRole} onChangeText={setTempRole} placeholder="Role" />
-                  ) : (
-                    <Text style={styles.infoValue}>{role}</Text>
-                  )}
-                </View>
-              </View>
-
-              {/* Location */}
-              <View style={styles.infoRow}>
-                <Feather name="map-pin" size={18} color="#8E9BB3" style={styles.infoIcon} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.infoLabel}>Location</Text>
-                  {isEditing ? (
-                    <TextInput style={styles.editInput} value={tempLocation} onChangeText={setTempLocation} placeholder="Location" />
-                  ) : (
-                    <Text style={styles.infoValue}>{location}</Text>
-                  )}
-                </View>
-              </View>
-
-              {/* Extended Contact Fields - Visible ONLY during edit mode */}
-              {isEditing && (
-                <>
-                  <View style={styles.infoRow}>
-                    <Feather name="mail" size={18} color="#8E9BB3" style={styles.infoIcon} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.infoLabel}>Email (Hidden on card when saved)</Text>
-                      <TextInput
-                        style={styles.editInput}
-                        value={tempEmail}
-                        onChangeText={setTempEmail}
-                        placeholder="Email address"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                      />
-                    </View>
-                  </View>
-
-                  <View style={styles.infoRow}>
-                    <Feather name="phone" size={18} color="#8E9BB3" style={styles.infoIcon} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.infoLabel}>Phone (Hidden on card when saved)</Text>
-                      <TextInput
-                        style={styles.editInput}
-                        value={tempPhone}
-                        onChangeText={setTempPhone}
-                        placeholder="Phone number"
-                        keyboardType="phone-pad"
-                      />
-                    </View>
-                  </View>
-
-                  <View style={styles.infoRow}>
-                    <Feather name="linkedin" size={18} color="#8E9BB3" style={styles.infoIcon} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.infoLabel}>LinkedIn Profile (Hidden on card when saved)</Text>
-                      <TextInput
-                        style={styles.editInput}
-                        value={tempLinkedin}
-                        onChangeText={setTempLinkedin}
-                        placeholder="https://linkedin.com/in/..."
-                        autoCapitalize="none"
-                      />
-                    </View>
-                  </View>
-                </>
-              )}
-            </View>
-
-            {/* Notes */}
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Notes</Text>
+            <View style={styles.profileHeader}>
+              <View style={styles.largeAvatarPlaceholder} />
               {isEditing ? (
                 <TextInput
-                  style={[styles.editInput, styles.textArea]}
-                  value={tempNotes}
-                  onChangeText={setTempNotes}
-                  multiline
-                  placeholder="Notes"
+                  style={styles.editTitleInput}
+                  value={tempName}
+                  onChangeText={setTempName}
+                  placeholder="Full Name"
+                  placeholderTextColor="#8E9BB3"
                 />
               ) : (
-                <Text style={styles.notesText}>{notes}</Text>
+                <Text style={styles.profileName}>{name}</Text>
               )}
+              <Text style={styles.profileRole}>
+                {role.split(',')[0]} . {company}
+              </Text>
+              <View style={[styles.statusPill, {
+                backgroundColor: referral.statusBg || '#FFFBEB',
+                borderColor: referral.statusBorder || '#FEF3C7',
+                borderWidth: 1,
+              }]}>
+                <Text style={[styles.statusText, { color: referral.statusColor || '#D97706' }]}>
+                  {referral.status || 'Pending'}
+                </Text>
+              </View>
+              <View style={styles.socialIcons}>
+                <TouchableOpacity style={styles.socialIcon} onPress={() => openSocialLink(linkedin)}>
+                  <Feather name="linkedin" size={16} color="#FFFFFF" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.socialIcon} onPress={() => openSocialLink(`mailto:${email}`)}>
+                  <Feather name="mail" size={16} color="#FFFFFF" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.socialIcon} onPress={() => openSocialLink(`tel:${phone}`)}>
+                  <Feather name="phone" size={16} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
             </View>
 
-            {/* Referral History */}
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Referral History</Text>
-                <Text style={styles.eventsCount}>{referral.history?.length || 0} events</Text>
-              </View>
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-              <View style={styles.historyTimeline}>
-                {(!referral.history || referral.history.length === 0) ? (
-                  <View style={{ paddingVertical: 20, alignItems: 'center' }}>
-                    <Text style={{ color: '#6B7280', fontSize: 14 }}>No events yet</Text>
+              {/* Cards */}
+              <View style={styles.cardsContainer}>
+                {/* Contact Info */}
+                <View style={styles.card}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle}>Contact Information</Text>
+                    <View style={styles.editActionsWrapper}>
+                      {isEditing && (
+                        <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
+                          <Text style={styles.cancelText}>Cancel</Text>
+                        </TouchableOpacity>
+                      )}
+                      <TouchableOpacity onPress={handleEditToggle}>
+                        <Text style={styles.editButton}>
+                          {isEditing ? 'Save' : 'Edit'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                ) : (
-                  referral.history.map((event: any, index: number) => {
-                    const isLast = index === referral.history.length - 1;
-                    return (
-                      <View key={index} style={styles.historyItem}>
-                        <View style={[styles.historyIconContainer, { backgroundColor: (event.color || '#6366F1') + '1A' }]}>
-                          <Feather name={(event.icon || 'clock') as any} size={12} color={event.color || '#6366F1'} />
-                        </View>
-                        {!isLast && <View style={styles.historyLine} />}
-                        <View style={styles.historyContent}>
-                          <Text style={styles.historyTitle}>{event.title}</Text>
-                          <Text style={styles.historyDesc}>
-                            {event.description}
-                            {event.timestamp && ` • ${new Date(event.timestamp).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`}
-                          </Text>
+
+                  {/* Company */}
+                  <View style={styles.infoRow}>
+                    <Feather name="briefcase" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.infoLabel}>Company</Text>
+                      {isEditing ? (
+                        <TextInput style={styles.editInput} value={tempCompany} onChangeText={setTempCompany} placeholder="Company" />
+                      ) : (
+                        <Text style={styles.infoValue}>{company}</Text>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Role */}
+                  <View style={styles.infoRow}>
+                    <Feather name="user" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.infoLabel}>Role</Text>
+                      {isEditing ? (
+                        <TextInput style={styles.editInput} value={tempRole} onChangeText={setTempRole} placeholder="Role" />
+                      ) : (
+                        <Text style={styles.infoValue}>{role}</Text>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Location */}
+                  <View style={styles.infoRow}>
+                    <Feather name="map-pin" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.infoLabel}>Location</Text>
+                      {isEditing ? (
+                        <TextInput style={styles.editInput} value={tempLocation} onChangeText={setTempLocation} placeholder="Location" />
+                      ) : (
+                        <Text style={styles.infoValue}>{location}</Text>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Extended Contact Fields - Visible ONLY during edit mode */}
+                  {isEditing && (
+                    <>
+                      <View style={styles.infoRow}>
+                        <Feather name="mail" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.infoLabel}>Email (Hidden on card when saved)</Text>
+                          <TextInput
+                            style={styles.editInput}
+                            value={tempEmail}
+                            onChangeText={setTempEmail}
+                            placeholder="Email address"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                          />
                         </View>
                       </View>
-                    );
-                  })
-                )}
+
+                      <View style={styles.infoRow}>
+                        <Feather name="phone" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.infoLabel}>Phone (Hidden on card when saved)</Text>
+                          <TextInput
+                            style={styles.editInput}
+                            value={tempPhone}
+                            onChangeText={setTempPhone}
+                            placeholder="Phone number"
+                            keyboardType="phone-pad"
+                          />
+                        </View>
+                      </View>
+
+                      <View style={styles.infoRow}>
+                        <Feather name="linkedin" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.infoLabel}>LinkedIn Profile (Hidden on card when saved)</Text>
+                          <TextInput
+                            style={styles.editInput}
+                            value={tempLinkedin}
+                            onChangeText={setTempLinkedin}
+                            placeholder="https://linkedin.com/in/..."
+                            autoCapitalize="none"
+                          />
+                        </View>
+                      </View>
+                    </>
+                  )}
+                </View>
+
+                {/* Notes */}
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Notes</Text>
+                  {isEditing ? (
+                    <TextInput
+                      style={[styles.editInput, styles.textArea]}
+                      value={tempNotes}
+                      onChangeText={setTempNotes}
+                      multiline
+                      placeholder="Notes"
+                    />
+                  ) : (
+                    <Text style={styles.notesText}>{notes}</Text>
+                  )}
+                </View>
+
+                {/* Referral History */}
+                <View style={styles.card}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle}>Referral History</Text>
+                    <Text style={styles.eventsCount}>{referral.history?.length || 0} events</Text>
+                  </View>
+
+                  <View style={styles.historyTimeline}>
+                    {(!referral.history || referral.history.length === 0) ? (
+                      <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+                        <Text style={{ color: '#6B7280', fontSize: 14 }}>No events yet</Text>
+                      </View>
+                    ) : (
+                      referral.history.map((event: any, index: number) => {
+                        const isLast = index === referral.history.length - 1;
+                        return (
+                          <View key={index} style={styles.historyItem}>
+                            <View style={[styles.historyIconContainer, { backgroundColor: (event.color || '#6366F1') + '1A' }]}>
+                              <Feather name={(event.icon || 'clock') as any} size={12} color={event.color || '#6366F1'} />
+                            </View>
+                            {!isLast && <View style={styles.historyLine} />}
+                            <View style={styles.historyContent}>
+                              <Text style={styles.historyTitle}>{event.title}</Text>
+                              <Text style={styles.historyDesc}>
+                                {event.description}
+                                {event.timestamp && ` • ${new Date(event.timestamp).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`}
+                              </Text>
+                            </View>
+                          </View>
+                        );
+                      })
+                    )}
+                  </View>
+                </View>
               </View>
+
+              <View style={{ height: 100 }} />
+            </ScrollView>
+
+            {/* Ask for Referral Button */}
+            <View style={styles.bottomActionContainer}>
+              <TouchableOpacity
+                style={styles.askReferralButton}
+                onPress={() => router.push(`/ask-referral?referralId=${id}`)}
+              >
+                <Text style={styles.askReferralButtonText}>Ask for Referral</Text>
+              </TouchableOpacity>
             </View>
-          </View>
-
-          <View style={{ height: 100 }} />
-        </ScrollView>
-
-        {/* Ask for Referral Button */}
-        <View style={styles.bottomActionContainer}>
-          <TouchableOpacity
-            style={styles.askReferralButton}
-            onPress={() => router.push(`/ask-referral?referralId=${id}`)}
-          >
-            <Text style={styles.askReferralButtonText}>Ask for Referral</Text>
-          </TouchableOpacity>
-        </View>
-        </>
+          </>
         )}
       </SafeAreaView>
     </View>
