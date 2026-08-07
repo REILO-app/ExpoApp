@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { fetchJobById } from '../../services/api';
+import { fetchJobById, deleteJob } from '../../services/api';
 
 export default function JobDetailScreen() {
   const router = useRouter();
@@ -51,6 +51,25 @@ export default function JobDetailScreen() {
     );
   };
 
+  const handleDelete = () => {
+    Alert.alert('Delete job?', 'This will permanently remove this job.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteJob(id as string);
+            router.replace('/(tabs)/jobs');
+          } catch (error) {
+            console.error('Failed to delete job', error);
+            Alert.alert('Error', 'Failed to delete job');
+          }
+        },
+      },
+    ]);
+  };
+
   return (
     <View style={styles.container}>
       {/* Gradient banner — same as all other pages */}
@@ -66,10 +85,15 @@ export default function JobDetailScreen() {
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
-        {/* Back button */}
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Feather name="chevron-left" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
+        {/* Top actions */}
+        <View style={styles.topActionsRow}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => router.back()}>
+            <Feather name="chevron-left" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton} onPress={handleDelete}>
+            <Feather name="trash-2" size={20} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
 
         {/* Header block */}
         <View style={styles.profileHeader}>
@@ -187,7 +211,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(16, 185, 129, 0.15)',
   },
   safeArea: { flex: 1 },
-  backButton: { position: 'absolute', top: 50, left: 20, zIndex: 10, padding: 8 },
+  topActionsRow: {
+    position: 'absolute', top: 50, left: 20, right: 20,
+    zIndex: 10, flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  actionButton: {
+    padding: 8, backgroundColor: 'rgba(0, 0, 0, 0.2)', borderRadius: 20,
+  },
   profileHeader: {
     alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, marginBottom: 46,
   },

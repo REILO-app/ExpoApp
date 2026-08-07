@@ -8,40 +8,6 @@ import { BlurView } from 'expo-blur';
 import { deleteJob, fetchJobs } from '../../services/api';
 import { EmptyState } from '../../components/EmptyState';
 
-function SwipeToDeleteRow({ children, onDelete }: { children: React.ReactNode; onDelete: () => void }) {
-  const translateX = useRef(new Animated.Value(0)).current;
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 10,
-      onPanResponderMove: (_, gestureState) => {
-        if (gestureState.dx < 0) {
-          translateX.setValue(Math.max(-96, Math.min(0, gestureState.dx)));
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dx < -80) {
-          Animated.spring(translateX, { toValue: -96, useNativeDriver: true }).start();
-          onDelete();
-        } else {
-          Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
-        }
-      },
-    })
-  ).current;
-
-  return (
-    <View style={styles.swipeContainer}>
-      <View style={styles.deleteBackground}>
-        <Feather name="trash-2" size={18} color="#FFFFFF" />
-        <Text style={styles.deleteLabel}>Delete</Text>
-      </View>
-      <Animated.View style={[styles.swipeContent, { transform: [{ translateX }] }]} {...panResponder.panHandlers}>
-        {children}
-      </Animated.View>
-    </View>
-  );
-}
 
 export default function JobsScreen() {
   const router = useRouter();
@@ -83,24 +49,6 @@ export default function JobsScreen() {
     });
   }
 
-  const handleDelete = (id: string) => {
-    Alert.alert('Delete job?', 'This will remove the job from your list.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteJob(id);
-            setJobs(prev => prev.filter(job => job.id !== id));
-          } catch (error) {
-            console.error('Failed to delete job', error);
-            Alert.alert('Error', 'Failed to delete job');
-          }
-        },
-      },
-    ]);
-  };
 
   const renderEmpty = () => {
     if (jobs.length === 0) {
@@ -201,35 +149,33 @@ export default function JobsScreen() {
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={renderEmpty}
             renderItem={({ item }) => (
-              <SwipeToDeleteRow onDelete={() => handleDelete(item.id)}>
-                <View style={styles.jobCard}>
-                  <TouchableOpacity style={styles.jobContent} onPress={() => router.push(`/job/${item.id}`)}>
-                    <View style={styles.jobHeader}>
-                      <View style={styles.companyIconPlaceholder}>
-                        <Feather name="briefcase" size={20} color="#8E9BB3" />
-                      </View>
-                      <View style={styles.jobTitleContainer}>
-                        <Text style={styles.jobRole}>{item.role}</Text>
-                        <Text style={styles.jobCompany}>{item.company}</Text>
-                      </View>
+              <TouchableOpacity style={styles.jobCard} onPress={() => router.push(`/job/${item.id}`)}>
+                <View style={styles.jobContent}>
+                  <View style={styles.jobHeader}>
+                    <View style={styles.companyIconPlaceholder}>
+                      <Feather name="briefcase" size={20} color="#8E9BB3" />
                     </View>
-
-                    <View style={styles.divider} />
-
-                    <View style={styles.jobFooter}>
-                      <View style={styles.referrerInfo}>
-                        <Feather name="user" size={14} color="#6B7280" />
-                        <Text style={styles.referrerName}>{item.referrer}</Text>
-                      </View>
-                      <View style={[styles.statusPill, item.status === 'Email Sent' ? styles.statusSent : styles.statusPending]}>
-                        <Text style={[styles.statusText, item.status === 'Email Sent' ? styles.statusTextSent : styles.statusTextPending]}>
-                          {item.status}
-                        </Text>
-                      </View>
+                    <View style={styles.jobTitleContainer}>
+                      <Text style={styles.jobRole}>{item.role}</Text>
+                      <Text style={styles.jobCompany}>{item.company}</Text>
                     </View>
-                  </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.divider} />
+
+                  <View style={styles.jobFooter}>
+                    <View style={styles.referrerInfo}>
+                      <Feather name="user" size={14} color="#6B7280" />
+                      <Text style={styles.referrerName}>{item.referrer}</Text>
+                    </View>
+                    <View style={[styles.statusPill, item.status === 'Email Sent' ? styles.statusSent : styles.statusPending]}>
+                      <Text style={[styles.statusText, item.status === 'Email Sent' ? styles.statusTextSent : styles.statusTextPending]}>
+                        {item.status}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-              </SwipeToDeleteRow>
+              </TouchableOpacity>
             )}
           />
         )}
@@ -377,29 +323,7 @@ const styles = StyleSheet.create({
   jobContent: {
     flex: 1,
   },
-  swipeContainer: {
-    marginBottom: 16,
-  },
-  deleteBackground: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: 96,
-    backgroundColor: '#DC2626',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 6,
-  },
-  deleteLabel: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  swipeContent: {
-    zIndex: 1,
-  },
+
   jobHeader: {
     flexDirection: 'row',
     alignItems: 'center',

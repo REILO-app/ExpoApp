@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { useState, useEffect } from 'react';
-import { fetchReferralById } from '../../services/api';
+import { fetchReferralById, deleteReferral } from '../../services/api';
 
 export default function ReferralDetailScreen() {
   const router = useRouter();
@@ -92,6 +92,25 @@ export default function ReferralDetailScreen() {
     Linking.openURL(url).catch(() => Alert.alert('Error', 'Unable to open link'));
   };
 
+  const handleDelete = () => {
+    Alert.alert('Delete referral?', 'This will permanently remove this referral.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteReferral(id as string);
+            router.replace('/(tabs)/referrals');
+          } catch (error) {
+            console.error('Failed to delete referral', error);
+            Alert.alert('Error', 'Failed to delete referral');
+          }
+        },
+      },
+    ]);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.headerBackground}>
@@ -106,10 +125,14 @@ export default function ReferralDetailScreen() {
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
-        {/* Back Button */}
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Feather name="chevron-left" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
+        <View style={styles.topActionsRow}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => router.back()}>
+            <Feather name="chevron-left" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton} onPress={handleDelete}>
+            <Feather name="trash-2" size={20} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
 
         {loading ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -377,12 +400,20 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  backButton: {
+  topActionsRow: {
     position: 'absolute',
     top: 50,
     left: 20,
+    right: 20,
     zIndex: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  actionButton: {
     padding: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 20,
   },
   scrollContent: {
     paddingTop: 10,
