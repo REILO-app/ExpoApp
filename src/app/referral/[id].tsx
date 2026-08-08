@@ -1,18 +1,126 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Linking, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Linking, Alert, Animated } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { useState, useEffect } from 'react';
-import { fetchReferralById, fetchJobById, deleteReferral } from '../../services/api';
+import { useState, useEffect, useRef } from 'react';
+import { fetchReferralById, fetchJobsByReferralId, deleteReferral } from '../../services/api';
+
+// Skeleton shimmer bone component
+const SkeletonBone = ({ width, height, borderRadius = 6, style, pulseAnim }: any) => (
+  <Animated.View
+    style={[
+      {
+        width,
+        height,
+        borderRadius,
+        backgroundColor: '#E5E7EB',
+        opacity: pulseAnim,
+      },
+      style,
+    ]}
+  />
+);
+
+const SkeletonLoader = ({ pulseAnim }: { pulseAnim: Animated.Value }) => (
+  <>
+    {/* Profile Header Skeleton */}
+    <View style={styles.profileHeader}>
+      <SkeletonBone width={100} height={100} borderRadius={50} style={{ marginBottom: 16 }} pulseAnim={pulseAnim} />
+      <SkeletonBone width={180} height={24} style={{ marginBottom: 8 }} pulseAnim={pulseAnim} />
+      <SkeletonBone width={140} height={14} style={{ marginBottom: 12 }} pulseAnim={pulseAnim} />
+      <SkeletonBone width={80} height={28} borderRadius={14} style={{ marginBottom: 16 }} pulseAnim={pulseAnim} />
+      <View style={{ flexDirection: 'row', gap: 12 }}>
+        <SkeletonBone width={32} height={32} borderRadius={16} pulseAnim={pulseAnim} />
+        <SkeletonBone width={32} height={32} borderRadius={16} pulseAnim={pulseAnim} />
+        <SkeletonBone width={32} height={32} borderRadius={16} pulseAnim={pulseAnim} />
+      </View>
+    </View>
+
+    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <View style={styles.cardsContainer}>
+        {/* Contact Info Card Skeleton */}
+        <View style={styles.card}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
+            <SkeletonBone width={150} height={16} pulseAnim={pulseAnim} />
+            <SkeletonBone width={36} height={16} pulseAnim={pulseAnim} />
+          </View>
+          {[1, 2, 3].map((i) => (
+            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+              <SkeletonBone width={18} height={18} borderRadius={9} style={{ marginRight: 12 }} pulseAnim={pulseAnim} />
+              <View>
+                <SkeletonBone width={60} height={10} style={{ marginBottom: 6 }} pulseAnim={pulseAnim} />
+                <SkeletonBone width={140} height={14} pulseAnim={pulseAnim} />
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Notes Card Skeleton */}
+        <View style={styles.card}>
+          <SkeletonBone width={60} height={16} style={{ marginBottom: 12 }} pulseAnim={pulseAnim} />
+          <SkeletonBone width={'100%' as any} height={12} style={{ marginBottom: 6 }} pulseAnim={pulseAnim} />
+          <SkeletonBone width={'75%' as any} height={12} pulseAnim={pulseAnim} />
+        </View>
+
+        {/* History Card Skeleton */}
+        <View style={styles.card}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
+            <SkeletonBone width={130} height={16} pulseAnim={pulseAnim} />
+            <SkeletonBone width={50} height={14} pulseAnim={pulseAnim} />
+          </View>
+          {[1, 2].map((i) => (
+            <View key={i} style={{ flexDirection: 'row', marginBottom: 20 }}>
+              <SkeletonBone width={24} height={24} borderRadius={12} style={{ marginRight: 16 }} pulseAnim={pulseAnim} />
+              <View>
+                <SkeletonBone width={120} height={14} style={{ marginBottom: 6 }} pulseAnim={pulseAnim} />
+                <SkeletonBone width={200} height={12} pulseAnim={pulseAnim} />
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Jobs Referred Card Skeleton */}
+        <View style={styles.card}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
+            <SkeletonBone width={110} height={16} pulseAnim={pulseAnim} />
+            <SkeletonBone width={40} height={14} pulseAnim={pulseAnim} />
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12 }}>
+            <SkeletonBone width={36} height={36} borderRadius={10} style={{ marginRight: 12 }} pulseAnim={pulseAnim} />
+            <View style={{ flex: 1 }}>
+              <SkeletonBone width={130} height={14} style={{ marginBottom: 4 }} pulseAnim={pulseAnim} />
+              <SkeletonBone width={100} height={12} pulseAnim={pulseAnim} />
+            </View>
+            <SkeletonBone width={70} height={22} borderRadius={11} pulseAnim={pulseAnim} />
+          </View>
+        </View>
+      </View>
+    </ScrollView>
+  </>
+);
 
 export default function ReferralDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
 
   const [referral, setReferral] = useState<any>(null);
+  const [referralJobs, setReferralJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Skeleton pulse animation
+  const pulseAnim = useRef(new Animated.Value(0.3)).current;
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, []);
 
   // Primary Editable Profile States
   const [name, setName] = useState('');
@@ -27,19 +135,30 @@ export default function ReferralDetailScreen() {
   useEffect(() => {
     const loadReferral = async () => {
       try {
-        const data = await fetchReferralById(id as string);
-        const x = await fetchJobById;
-        console.log(data, "data");
-        console.log(x, "data");
-        setReferral(data);
-        setName(data.name || '');
-        setCompany(data.company || '');
-        setRole(data.role || '');
-        setLocation(data.location || '');
-        setEmail(data.email || '');
-        setPhone(data.phone || '');
-        setLinkedin(data.linkedin || '');
-        setNotes(data.notes || '');
+        // Fire both requests in parallel
+        const [referralResult, jobsResult] = await Promise.allSettled([
+          fetchReferralById(id as string),
+          fetchJobsByReferralId(id as string),
+        ]);
+
+        if (referralResult.status === 'fulfilled') {
+          const data = referralResult.value;
+          setReferral(data);
+          setName(data.name || '');
+          setCompany(data.company || '');
+          setRole(data.role || '');
+          setLocation(data.location || '');
+          setEmail(data.email || '');
+          setPhone(data.phone || '');
+          setLinkedin(data.linkedin || '');
+          setNotes(data.notes || '');
+        }
+
+        if (jobsResult.status === 'fulfilled') {
+          setReferralJobs(jobsResult.value);
+        } else {
+          console.warn('Could not load referral jobs:', jobsResult.reason);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -138,9 +257,7 @@ export default function ReferralDetailScreen() {
         </View>
 
         {loading ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={{ color: 'white' }}>Loading...</Text>
-          </View>
+          <SkeletonLoader pulseAnim={pulseAnim} />
         ) : !referral ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <Text style={{ color: 'white' }}>Referral not found.</Text>
@@ -348,17 +465,39 @@ export default function ReferralDetailScreen() {
                 </View>
 
                 <View style={styles.card}>
-                  <Text style={styles.cardTitle}>Jobs Reffered</Text>
-                  {isEditing ? (
-                    <TextInput
-                      style={[styles.editInput, styles.textArea]}
-                      value={tempNotes}
-                      onChangeText={setTempNotes}
-                      multiline
-                      placeholder="Notes"
-                    />
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle}>Jobs Referred</Text>
+                    <Text style={styles.eventsCount}>{referralJobs.length} job{referralJobs.length !== 1 ? 's' : ''}</Text>
+                  </View>
+                  {referralJobs.length === 0 ? (
+                    <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+                      <Feather name="briefcase" size={28} color="#D1D5DB" style={{ marginBottom: 8 }} />
+                      <Text style={{ color: '#9CA3AF', fontSize: 14 }}>No jobs linked to this referrer yet</Text>
+                    </View>
                   ) : (
-                    <Text style={styles.notesText}>{notes}</Text>
+                    referralJobs.map((job: any, index: number) => (
+                      <TouchableOpacity
+                        key={job.id || index}
+                        style={[
+                          styles.jobRow,
+                          index < referralJobs.length - 1 && styles.jobRowBorder,
+                        ]}
+                        onPress={() => router.push(`/job/${job.id}`)}
+                        activeOpacity={0.7}
+                      >
+                        <View style={[styles.jobIconContainer, { backgroundColor: (job.statusBg || '#EEF2FF') }]}>
+                          <Feather name="briefcase" size={16} color={job.statusColor || '#6366F1'} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.jobTitle}>{job.role}</Text>
+                          <Text style={styles.jobCompany}>{job.company}{job.location ? ` · ${job.location}` : ''}</Text>
+                        </View>
+                        <View style={[styles.jobStatusPill, { backgroundColor: job.statusBg || '#EEF2FF', borderColor: job.statusBorder || '#C7D2FE' }]}>
+                          <View style={[styles.jobStatusDot, { backgroundColor: job.dotColor || '#6366F1' }]} />
+                          <Text style={[styles.jobStatusText, { color: job.statusColor || '#6366F1' }]}>{job.status}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))
                   )}
                 </View>
               </View>

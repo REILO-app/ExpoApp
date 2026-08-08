@@ -1,19 +1,87 @@
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert, Animated,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { fetchJobById, deleteJob } from '../../services/api';
+
+const SkeletonBone = ({ width, height, borderRadius = 6, style, pulseAnim }: any) => (
+  <Animated.View
+    style={[
+      { width, height, borderRadius, backgroundColor: '#E5E7EB', opacity: pulseAnim },
+      style,
+    ]}
+  />
+);
+
+const JobSkeletonLoader = ({ pulseAnim }: { pulseAnim: Animated.Value }) => (
+  <>
+    {/* Header Skeleton */}
+    <View style={styles.profileHeader}>
+      <SkeletonBone width={80} height={80} borderRadius={20} style={{ marginBottom: 14 }} pulseAnim={pulseAnim} />
+      <SkeletonBone width={100} height={13} style={{ marginBottom: 8 }} pulseAnim={pulseAnim} />
+      <SkeletonBone width={200} height={22} style={{ marginBottom: 12 }} pulseAnim={pulseAnim} />
+      <SkeletonBone width={90} height={28} borderRadius={14} style={{ marginBottom: 14 }} pulseAnim={pulseAnim} />
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <SkeletonBone width={90} height={30} borderRadius={15} pulseAnim={pulseAnim} />
+        <SkeletonBone width={90} height={30} borderRadius={15} pulseAnim={pulseAnim} />
+      </View>
+    </View>
+
+    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      {/* Job Details Card Skeleton */}
+      <View style={styles.card}>
+        <SkeletonBone width={80} height={11} style={{ marginBottom: 16 }} pulseAnim={pulseAnim} />
+        {[1, 2, 3, 4].map((i) => (
+          <View key={i}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6 }}>
+              <SkeletonBone width={36} height={36} borderRadius={10} style={{ marginRight: 14 }} pulseAnim={pulseAnim} />
+              <View>
+                <SkeletonBone width={50} height={10} style={{ marginBottom: 4 }} pulseAnim={pulseAnim} />
+                <SkeletonBone width={140} height={14} pulseAnim={pulseAnim} />
+              </View>
+            </View>
+            {i < 4 && <View style={[styles.divider, { marginLeft: 50 }]} />}
+          </View>
+        ))}
+      </View>
+
+      {/* Job Description Card Skeleton */}
+      <View style={styles.card}>
+        <SkeletonBone width={110} height={11} style={{ marginBottom: 16 }} pulseAnim={pulseAnim} />
+        <SkeletonBone width={'100%' as any} height={12} style={{ marginBottom: 8 }} pulseAnim={pulseAnim} />
+        <SkeletonBone width={'90%' as any} height={12} style={{ marginBottom: 8 }} pulseAnim={pulseAnim} />
+        <SkeletonBone width={'95%' as any} height={12} style={{ marginBottom: 8 }} pulseAnim={pulseAnim} />
+        <SkeletonBone width={'60%' as any} height={12} pulseAnim={pulseAnim} />
+      </View>
+
+      <View style={{ height: 100 }} />
+    </ScrollView>
+  </>
+);
 
 export default function JobDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Skeleton pulse animation
+  const pulseAnim = useRef(new Animated.Value(0.3)).current;
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, []);
 
   useEffect(() => {
     const loadJob = async () => {
@@ -29,15 +97,7 @@ export default function JobDetailScreen() {
     if (id) loadJob();
   }, [id]);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#080d18ff' }}>
-        <Text style={{ color: 'white' }}>Loading...</Text>
-      </View>
-    );
-  }
-
-  if (!job) {
+  if (!loading && !job) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#080d18ff' }}>
         <Text style={{ color: 'white' }}>Job not found</Text>
@@ -90,105 +150,113 @@ export default function JobDetailScreen() {
           <TouchableOpacity style={styles.actionButton} onPress={() => router.back()}>
             <Feather name="chevron-left" size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={handleDelete}>
-            <Feather name="trash-2" size={20} color="#EF4444" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Header block */}
-        <View style={styles.profileHeader}>
-          <View style={styles.companyIconLarge}>
-            <Feather name="briefcase" size={32} color="#8E9BB3" />
-          </View>
-          <Text style={styles.companyName}>{job.company}</Text>
-          <Text style={styles.roleName}>{job.role}</Text>
-          <View style={[styles.statusPill, { backgroundColor: job.statusBg }]}>
-            <Text style={[styles.statusText, { color: job.statusColor }]}>{job.status}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <View style={styles.metaPill}>
-              <Feather name="map-pin" size={12} color="#94A3B8" />
-              <Text style={styles.metaText}>{job.location}</Text>
-            </View>
-            <View style={styles.metaPill}>
-              <Feather name="clock" size={12} color="#94A3B8" />
-              <Text style={styles.metaText}>{job.type}</Text>
-            </View>
-          </View>
-        </View>
-
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-          {/* Job Details card */}
-          <View style={styles.card}>
-            <Text style={styles.sectionLabel}>Job Details</Text>
-
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconBox}>
-                <Feather name="hash" size={16} color="#6366F1" />
-              </View>
-              <View style={styles.infoText}>
-                <Text style={styles.infoLabel}>Job ID</Text>
-                <Text style={styles.infoValue}>{job.jobId}</Text>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconBox}>
-                <Feather name="briefcase" size={16} color="#6366F1" />
-              </View>
-              <View style={styles.infoText}>
-                <Text style={styles.infoLabel}>Company</Text>
-                <Text style={styles.infoValue}>{job.company}</Text>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconBox}>
-                <Feather name="user" size={16} color="#6366F1" />
-              </View>
-              <View style={styles.infoText}>
-                <Text style={styles.infoLabel}>Referrer</Text>
-                <Text style={styles.infoValue}>{job.referrer}</Text>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
-            <TouchableOpacity style={styles.infoRow} onPress={handleOpenLink} activeOpacity={0.7}>
-              <View style={[styles.infoIconBox, { backgroundColor: '#EEF2FF' }]}>
-                <Feather name="external-link" size={16} color="#4F46E5" />
-              </View>
-              <View style={styles.infoText}>
-                <Text style={styles.infoLabel}>Job Link</Text>
-                <Text style={[styles.infoValue, { color: '#4F46E5' }]} numberOfLines={1}>
-                  {job.link}
-                </Text>
-              </View>
-              <Feather name="chevron-right" size={18} color="#9CA3AF" />
+          {!loading && job && (
+            <TouchableOpacity style={styles.actionButton} onPress={handleDelete}>
+              <Feather name="trash-2" size={20} color="#EF4444" />
             </TouchableOpacity>
-          </View>
-
-          {/* JD card */}
-          <View style={styles.card}>
-            <Text style={styles.sectionLabel}>Job Description</Text>
-            <Text style={styles.jdText}>{job.jd}</Text>
-          </View>
-
-          <View style={{ height: 100 }} />
-        </ScrollView>
-
-        {/* Apply Now CTA */}
-        <View style={styles.bottomBar}>
-          <TouchableOpacity style={styles.applyButton} onPress={handleOpenLink}>
-            <Feather name="external-link" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-            <Text style={styles.applyButtonText}>Apply Now</Text>
-          </TouchableOpacity>
+          )}
         </View>
+
+        {loading ? (
+          <JobSkeletonLoader pulseAnim={pulseAnim} />
+        ) : (
+          <>
+            {/* Header block */}
+            <View style={styles.profileHeader}>
+              <View style={styles.companyIconLarge}>
+                <Feather name="briefcase" size={32} color="#8E9BB3" />
+              </View>
+              <Text style={styles.companyName}>{job.company}</Text>
+              <Text style={styles.roleName}>{job.role}</Text>
+              <View style={[styles.statusPill, { backgroundColor: job.statusBg }]}>
+                <Text style={[styles.statusText, { color: job.statusColor }]}>{job.status}</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <View style={styles.metaPill}>
+                  <Feather name="map-pin" size={12} color="#94A3B8" />
+                  <Text style={styles.metaText}>{job.location}</Text>
+                </View>
+                <View style={styles.metaPill}>
+                  <Feather name="clock" size={12} color="#94A3B8" />
+                  <Text style={styles.metaText}>{job.type}</Text>
+                </View>
+              </View>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+              {/* Job Details card */}
+              <View style={styles.card}>
+                <Text style={styles.sectionLabel}>Job Details</Text>
+
+                <View style={styles.infoRow}>
+                  <View style={styles.infoIconBox}>
+                    <Feather name="hash" size={16} color="#6366F1" />
+                  </View>
+                  <View style={styles.infoText}>
+                    <Text style={styles.infoLabel}>Job ID</Text>
+                    <Text style={styles.infoValue}>{job.jobId}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.divider} />
+
+                <View style={styles.infoRow}>
+                  <View style={styles.infoIconBox}>
+                    <Feather name="briefcase" size={16} color="#6366F1" />
+                  </View>
+                  <View style={styles.infoText}>
+                    <Text style={styles.infoLabel}>Company</Text>
+                    <Text style={styles.infoValue}>{job.company}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.divider} />
+
+                <View style={styles.infoRow}>
+                  <View style={styles.infoIconBox}>
+                    <Feather name="user" size={16} color="#6366F1" />
+                  </View>
+                  <View style={styles.infoText}>
+                    <Text style={styles.infoLabel}>Referrer</Text>
+                    <Text style={styles.infoValue}>{job.referrer}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.divider} />
+
+                <TouchableOpacity style={styles.infoRow} onPress={handleOpenLink} activeOpacity={0.7}>
+                  <View style={[styles.infoIconBox, { backgroundColor: '#EEF2FF' }]}>
+                    <Feather name="external-link" size={16} color="#4F46E5" />
+                  </View>
+                  <View style={styles.infoText}>
+                    <Text style={styles.infoLabel}>Job Link</Text>
+                    <Text style={[styles.infoValue, { color: '#4F46E5' }]} numberOfLines={1}>
+                      {job.link}
+                    </Text>
+                  </View>
+                  <Feather name="chevron-right" size={18} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
+
+              {/* JD card */}
+              <View style={styles.card}>
+                <Text style={styles.sectionLabel}>Job Description</Text>
+                <Text style={styles.jdText}>{job.jd}</Text>
+              </View>
+
+              <View style={{ height: 100 }} />
+            </ScrollView>
+
+            {/* Apply Now CTA */}
+            <View style={styles.bottomBar}>
+              <TouchableOpacity style={styles.applyButton} onPress={handleOpenLink}>
+                <Feather name="external-link" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+                <Text style={styles.applyButtonText}>Apply Now</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
       </SafeAreaView>
     </View>
   );

@@ -22,8 +22,8 @@ const TABS = [
 
 function getTabIndex(pathname: string): number {
   if (pathname === '/' || pathname === '/index') return 0;
-  if (pathname.startsWith('/referrals')) return 1;
-  if (pathname.startsWith('/jobs')) return 2;
+  if (pathname.startsWith('/referral')) return 1;  // matches /referrals and /referral/[id]
+  if (pathname.startsWith('/job')) return 2;        // matches /jobs and /job/[id]
   if (pathname.startsWith('/profile')) return 3;
   return 0;
 }
