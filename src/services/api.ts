@@ -71,6 +71,13 @@ export const fetchJobById = async (id: string) => {
   return res.json();
 };
 
+export const fetchJobsByReferralId = async (referralId: string) => {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${API_URL}/api/referrals/${referralId}/jobs`, { headers });
+  if (!res.ok) throw new Error('Failed to fetch jobs for referral');
+  return res.json();
+};
+
 export const addReferral = async (referralData: any) => {
   const headers = await getAuthHeaders();
   const res = await fetch(`${API_URL}/api/referrals`, {

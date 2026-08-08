@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { useState, useEffect } from 'react';
-import { fetchReferralById, deleteReferral } from '../../services/api';
+import { fetchReferralById, fetchJobById, deleteReferral } from '../../services/api';
 
 export default function ReferralDetailScreen() {
   const router = useRouter();
@@ -28,6 +28,9 @@ export default function ReferralDetailScreen() {
     const loadReferral = async () => {
       try {
         const data = await fetchReferralById(id as string);
+        const x = await fetchJobById;
+        console.log(data, "data");
+        console.log(x, "data");
         setReferral(data);
         setName(data.name || '');
         setCompany(data.company || '');
@@ -343,9 +346,25 @@ export default function ReferralDetailScreen() {
                     )}
                   </View>
                 </View>
+
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Jobs Reffered</Text>
+                  {isEditing ? (
+                    <TextInput
+                      style={[styles.editInput, styles.textArea]}
+                      value={tempNotes}
+                      onChangeText={setTempNotes}
+                      multiline
+                      placeholder="Notes"
+                    />
+                  ) : (
+                    <Text style={styles.notesText}>{notes}</Text>
+                  )}
+                </View>
               </View>
 
-              <View style={{ height: 100 }} />
+
+
             </ScrollView>
 
             {/* Ask for Referral Button */}
@@ -631,5 +650,51 @@ const styles = StyleSheet.create({
   textArea: {
     height: 80,
     textAlignVertical: 'top',
+  },
+  jobRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  jobRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  jobIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  jobTitle: {
+    color: '#111827',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  jobCompany: {
+    color: '#6B7280',
+    fontSize: 12,
+  },
+  jobStatusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginLeft: 8,
+  },
+  jobStatusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  jobStatusText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
 });
