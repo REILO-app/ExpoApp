@@ -63,6 +63,7 @@ const syncUserToBackend = async (
       },
       body: JSON.stringify(profile ?? {}),
     });
+    console.log("profile", res);
   } catch {
     throw new Error(
       `Cannot reach the API at ${API_URL}. Start the backend with "npm start" in apps/api.`,
