@@ -1,21 +1,20 @@
-import { useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Alert, Animated, PanResponder } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { PlusCircle, Search, Menu, User } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { BlurView } from 'expo-blur';
-import { deleteReferral, fetchReferrals } from '../../services/api';
+import { fetchReferrals } from '../../services/api';
 import { EmptyState } from '../../components/EmptyState';
 
+const STATUS_FILTERS = ['All', 'Pending', 'Accepted', 'Rejected', 'No Response'];
 
 export default function ReferralsScreen() {
   const router = useRouter();
+  const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null);
-  
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [referrals, setReferrals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,49 +28,24 @@ export default function ReferralsScreen() {
     try {
       const data = await fetchReferrals();
       setReferrals(data);
-    } catch (error) {
-      console.error('Failed to load referrals', error);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  let filteredReferrals = referrals.filter(ref => {
-    const normalizedStatus = ref.status === 'Declined' ? 'Rejected' : ref.status;
-    const matchesFilter = activeFilter === 'All' || normalizedStatus === activeFilter;
-    const matchesSearch = ref.name.toLowerCase().includes(searchQuery.toLowerCase()) || ref.role.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
-
-  if (sortOrder) {
-    filteredReferrals = filteredReferrals.sort((a, b) => {
+  const filteredReferrals = referrals
+    .filter(ref => {
+      const normalizedStatus = ref.status === 'Declined' ? 'Rejected' : ref.status;
+      const matchesFilter = activeFilter === 'All' || normalizedStatus === activeFilter;
+      const matchesSearch = ref.name.toLowerCase().includes(searchQuery.toLowerCase()) || ref.role.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesFilter && matchesSearch;
+    })
+    .sort((a, b) => {
       if (sortOrder === 'asc') return a.name.localeCompare(b.name);
       return b.name.localeCompare(a.name);
     });
-  }
-
-
-
-  const renderEmpty = () => {
-    if (referrals.length === 0) {
-      return (
-        <EmptyState
-          icon="user-plus"
-          title="No referrals added yet"
-          subtitle="Add contacts from your network who can refer you when the right role opens up."
-          actionLabel="Add your first referral"
-          onAction={() => router.push('/add-referral')}
-        />
-      );
-    }
-    return (
-      <EmptyState
-        icon="search"
-        title="No matches found"
-        subtitle="Try adjusting your search or filters to find a referral."
-      />
-    );
-  };
 
   return (
     <View style={styles.container}>
@@ -82,23 +56,23 @@ export default function ReferralsScreen() {
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <BlurView intensity={15} tint="dark" style={styles.indigoGlow} />
-        <BlurView intensity={15} tint="dark" style={styles.emeraldGlow} />
+        <View style={styles.indigoGlow} />
+        <View style={styles.emeraldGlow} />
       </View>
-      <SafeAreaView edges={['top']} style={styles.safeArea}>
 
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
         {/* Fixed Header */}
         <View style={styles.fixedHeaderContent}>
           <View style={styles.headerTitleRow}>
             <Text style={styles.pageTitle}>Added Referrals</Text>
             <TouchableOpacity onPress={() => router.push('/add-referral')}>
-              <Feather name="plus-circle" size={24} color="#FFFFFF" />
+              <PlusCircle size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
           {/* Search */}
           <View style={styles.searchContainer}>
-            <Feather name="search" size={18} color="rgba(199, 210, 254, 0.6)" style={styles.searchIcon} />
+            <Search size={18} color="rgba(199, 210, 254, 0.6)" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
               placeholder="Search for a referral..."
@@ -107,7 +81,7 @@ export default function ReferralsScreen() {
               onChangeText={setSearchQuery}
             />
             <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
-              <Feather name="menu" size={18} color="rgba(199, 210, 254, 0.6)" />
+              <Menu size={18} color="rgba(199, 210, 254, 0.6)" />
             </TouchableOpacity>
           </View>
 
@@ -149,12 +123,20 @@ export default function ReferralsScreen() {
             keyExtractor={(item) => item.id}
             contentContainerStyle={[styles.listContent, filteredReferrals.length === 0 && styles.listContentEmpty]}
             showsVerticalScrollIndicator={false}
-            ListEmptyComponent={renderEmpty}
+            ListEmptyComponent={
+              <EmptyState
+                icon="users"
+                title="No referrals found"
+                subtitle="Tap + above to add your first referral contact."
+                actionLabel="Add Referral"
+                onAction={() => router.push('/add-referral')}
+              />
+            }
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.referralCard} onPress={() => router.push(`/referral/${item.id}`)}>
                 <View style={styles.avatarContainer}>
                   <View style={styles.referralAvatarPlaceholder}>
-                    <Feather name="user" size={20} color="#8E9BB3" />
+                    <User size={20} color="#8E9BB3" />
                   </View>
                   <View style={[styles.statusDot, { borderColor: '#FFFFFF', backgroundColor: item.dotColor || '#000' }]} />
                 </View>
@@ -172,8 +154,8 @@ export default function ReferralsScreen() {
                 </View>
               </TouchableOpacity>
             )}
-        />
-      )}
+          />
+        )}
       </SafeAreaView>
     </View>
   );
@@ -306,7 +288,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 14,
-    
+
     borderWidth: 1,
     borderColor: '#F1F5F9',
     shadowColor: '#000',

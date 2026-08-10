@@ -1,9 +1,8 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { ChevronLeft, Lock, Key, CheckCircle } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { BlurView } from 'expo-blur';
 import { useState } from 'react';
 
 export default function ChangePasswordScreen() {
@@ -21,15 +20,15 @@ export default function ChangePasswordScreen() {
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <BlurView intensity={20} tint="dark" style={styles.indigoGlow} />
-        <BlurView intensity={20} tint="dark" style={styles.emeraldGlow} />
+        <View style={styles.indigoGlow} />
+        <View style={styles.emeraldGlow} />
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Feather name="chevron-left" size={24} color="#FFFFFF" />
+            <ChevronLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.pageTitle}>Change Password</Text>
           <View style={{ width: 24 }} />
@@ -41,7 +40,7 @@ export default function ChangePasswordScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Current Password</Text>
               <View style={styles.inputWrapper}>
-                <Feather name="lock" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                <Lock size={18} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={currentPassword}
@@ -56,7 +55,7 @@ export default function ChangePasswordScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>New Password</Text>
               <View style={styles.inputWrapper}>
-                <Feather name="key" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                <Key size={18} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={newPassword}
@@ -71,7 +70,7 @@ export default function ChangePasswordScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Confirm New Password</Text>
               <View style={styles.inputWrapper}>
-                <Feather name="check-circle" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                <CheckCircle size={18} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={confirmPassword}

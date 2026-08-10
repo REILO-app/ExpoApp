@@ -12,20 +12,22 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
 
+  const rootSegment = segments[0] as string;
+  const isAuthenticated = Boolean(user);
+
   useEffect(() => {
     if (loading) return;
 
-    const seg = segments[0] as string;
-    const onAuthScreen = seg === 'login' || seg === 'signup' || seg === 'forgot-password';
+    const onAuthScreen = rootSegment === 'login' || rootSegment === 'signup' || rootSegment === 'forgot-password';
 
-    if (!user && !onAuthScreen) {
+    if (!isAuthenticated && !onAuthScreen) {
       // Not logged in and not on an auth screen → go to login
       router.replace('/login');
-    } else if (user && onAuthScreen) {
+    } else if (isAuthenticated && onAuthScreen) {
       // Logged in but on auth screens → go to app
       router.replace('/(tabs)');
     }
-  }, [user, loading, segments]);
+  }, [isAuthenticated, loading, rootSegment]);
 
   if (loading) {
     return (

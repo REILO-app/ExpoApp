@@ -1,10 +1,12 @@
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert, Animated,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import {
+  ChevronLeft, Trash2, Briefcase, MapPin, Clock, Hash, User,
+  ExternalLink, ChevronRight
+} from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect, useRef } from 'react';
 import { fetchJobById, deleteJob } from '../../services/api';
@@ -58,8 +60,6 @@ const JobSkeletonLoader = ({ pulseAnim }: { pulseAnim: Animated.Value }) => (
         <SkeletonBone width={'95%' as any} height={12} style={{ marginBottom: 8 }} pulseAnim={pulseAnim} />
         <SkeletonBone width={'60%' as any} height={12} pulseAnim={pulseAnim} />
       </View>
-
-      <View style={{ height: 100 }} />
     </ScrollView>
   </>
 );
@@ -67,16 +67,16 @@ const JobSkeletonLoader = ({ pulseAnim }: { pulseAnim: Animated.Value }) => (
 export default function JobDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const pulseAnim = useRef(new Animated.Value(0.4)).current;
 
-  // Skeleton pulse animation
-  const pulseAnim = useRef(new Animated.Value(0.3)).current;
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 750, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.4, duration: 750, useNativeDriver: true }),
       ])
     );
     pulse.start();
@@ -140,19 +140,19 @@ export default function JobDetailScreen() {
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <BlurView intensity={15} tint="dark" style={styles.indigoGlow} />
-        <BlurView intensity={15} tint="dark" style={styles.emeraldGlow} />
+        <View style={styles.indigoGlow} />
+        <View style={styles.emeraldGlow} />
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         {/* Top actions */}
         <View style={styles.topActionsRow}>
           <TouchableOpacity style={styles.actionButton} onPress={() => router.back()}>
-            <Feather name="chevron-left" size={24} color="#FFFFFF" />
+            <ChevronLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
           {!loading && job && (
             <TouchableOpacity style={styles.actionButton} onPress={handleDelete}>
-              <Feather name="trash-2" size={20} color="#EF4444" />
+              <Trash2 size={20} color="#EF4444" />
             </TouchableOpacity>
           )}
         </View>
@@ -164,7 +164,7 @@ export default function JobDetailScreen() {
             {/* Header block */}
             <View style={styles.profileHeader}>
               <View style={styles.companyIconLarge}>
-                <Feather name="briefcase" size={32} color="#8E9BB3" />
+                <Briefcase size={32} color="#8E9BB3" />
               </View>
               <Text style={styles.companyName}>{job.company}</Text>
               <Text style={styles.roleName}>{job.role}</Text>
@@ -173,11 +173,11 @@ export default function JobDetailScreen() {
               </View>
               <View style={styles.metaRow}>
                 <View style={styles.metaPill}>
-                  <Feather name="map-pin" size={12} color="#94A3B8" />
+                  <MapPin size={12} color="#94A3B8" />
                   <Text style={styles.metaText}>{job.location}</Text>
                 </View>
                 <View style={styles.metaPill}>
-                  <Feather name="clock" size={12} color="#94A3B8" />
+                  <Clock size={12} color="#94A3B8" />
                   <Text style={styles.metaText}>{job.type}</Text>
                 </View>
               </View>
@@ -191,7 +191,7 @@ export default function JobDetailScreen() {
 
                 <View style={styles.infoRow}>
                   <View style={styles.infoIconBox}>
-                    <Feather name="hash" size={16} color="#6366F1" />
+                    <Hash size={16} color="#6366F1" />
                   </View>
                   <View style={styles.infoText}>
                     <Text style={styles.infoLabel}>Job ID</Text>
@@ -203,7 +203,7 @@ export default function JobDetailScreen() {
 
                 <View style={styles.infoRow}>
                   <View style={styles.infoIconBox}>
-                    <Feather name="briefcase" size={16} color="#6366F1" />
+                    <Briefcase size={16} color="#6366F1" />
                   </View>
                   <View style={styles.infoText}>
                     <Text style={styles.infoLabel}>Company</Text>
@@ -215,7 +215,7 @@ export default function JobDetailScreen() {
 
                 <View style={styles.infoRow}>
                   <View style={styles.infoIconBox}>
-                    <Feather name="user" size={16} color="#6366F1" />
+                    <User size={16} color="#6366F1" />
                   </View>
                   <View style={styles.infoText}>
                     <Text style={styles.infoLabel}>Referrer</Text>
@@ -227,7 +227,7 @@ export default function JobDetailScreen() {
 
                 <TouchableOpacity style={styles.infoRow} onPress={handleOpenLink} activeOpacity={0.7}>
                   <View style={[styles.infoIconBox, { backgroundColor: '#EEF2FF' }]}>
-                    <Feather name="external-link" size={16} color="#4F46E5" />
+                    <ExternalLink size={16} color="#4F46E5" />
                   </View>
                   <View style={styles.infoText}>
                     <Text style={styles.infoLabel}>Job Link</Text>
@@ -235,7 +235,7 @@ export default function JobDetailScreen() {
                       {job.link}
                     </Text>
                   </View>
-                  <Feather name="chevron-right" size={18} color="#9CA3AF" />
+                  <ChevronRight size={18} color="#9CA3AF" />
                 </TouchableOpacity>
               </View>
 
@@ -251,7 +251,7 @@ export default function JobDetailScreen() {
             {/* Apply Now CTA */}
             <View style={styles.bottomBar}>
               <TouchableOpacity style={styles.applyButton} onPress={handleOpenLink}>
-                <Feather name="external-link" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+                <ExternalLink size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
                 <Text style={styles.applyButtonText}>Apply Now</Text>
               </TouchableOpacity>
             </View>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { ChevronLeft, CheckCircle, Info } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { fetchNotifications } from '../services/api';
@@ -30,7 +30,7 @@ export default function NotificationsScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Feather name="chevron-left" size={24} color="#111827" />
+            <ChevronLeft size={24} color="#111827" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Notifications</Text>
           <View style={styles.placeholder} />
@@ -46,22 +46,22 @@ export default function NotificationsScreen() {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContent}
             renderItem={({ item }) => (
-            <View style={styles.notificationCard}>
-              <View style={[styles.iconContainer, item.type === 'success' ? styles.iconSuccess : styles.iconInfo]}>
-                <Feather 
-                  name={item.type === 'success' ? 'check-circle' : 'info'} 
-                  size={20} 
-                  color={item.type === 'success' ? '#059669' : '#3B82F6'} 
-                />
+              <View style={styles.notificationCard}>
+                <View style={[styles.iconContainer, item.type === 'success' ? styles.iconSuccess : styles.iconInfo]}>
+                  {item.type === 'success' ? (
+                    <CheckCircle size={20} color="#059669" />
+                  ) : (
+                    <Info size={20} color="#3B82F6" />
+                  )}
+                </View>
+                <View style={styles.notificationContent}>
+                  <Text style={styles.notificationTitle}>{item.title}</Text>
+                  <Text style={styles.notificationMessage}>{item.message}</Text>
+                  <Text style={styles.notificationTime}>{item.time}</Text>
+                </View>
               </View>
-              <View style={styles.notificationContent}>
-                <Text style={styles.notificationTitle}>{item.title}</Text>
-                <Text style={styles.notificationMessage}>{item.message}</Text>
-                <Text style={styles.notificationTime}>{item.time}</Text>
-              </View>
-            </View>
-          )}
-        />
+            )}
+          />
         )}
       </SafeAreaView>
     </View>

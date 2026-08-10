@@ -1,10 +1,9 @@
 import { useState, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Alert, Animated, PanResponder } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { PlusCircle, Search, Menu, Briefcase, User } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { BlurView } from 'expo-blur';
 import { deleteJob, fetchJobs } from '../../services/api';
 import { EmptyState } from '../../components/EmptyState';
 
@@ -80,8 +79,8 @@ export default function JobsScreen() {
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <BlurView intensity={20} tint="dark" style={styles.indigoGlow} />
-        <BlurView intensity={20} tint="dark" style={styles.emeraldGlow} />
+        <View style={styles.indigoGlow} />
+        <View style={styles.emeraldGlow} />
       </View>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
 
@@ -90,13 +89,13 @@ export default function JobsScreen() {
           <View style={styles.headerTitleRow}>
             <Text style={styles.pageTitle}>Target Jobs</Text>
             <TouchableOpacity onPress={() => router.push('/add-job')}>
-              <Feather name="plus-circle" size={24} color="#FFFFFF" />
+              <PlusCircle size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
           {/* Search */}
           <View style={styles.searchContainer}>
-            <Feather name="search" size={18} color="rgba(199, 210, 254, 0.6)" style={styles.searchIcon} />
+            <Search size={18} color="rgba(199, 210, 254, 0.6)" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
               placeholder="Search for a job..."
@@ -105,7 +104,7 @@ export default function JobsScreen() {
               onChangeText={setSearchQuery}
             />
             <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
-              <Feather name="menu" size={18} color="rgba(199, 210, 254, 0.6)" />
+              <Menu size={18} color="rgba(199, 210, 254, 0.6)" />
             </TouchableOpacity>
           </View>
 
@@ -153,7 +152,7 @@ export default function JobsScreen() {
                 <View style={styles.jobContent}>
                   <View style={styles.jobHeader}>
                     <View style={styles.companyIconPlaceholder}>
-                      <Feather name="briefcase" size={20} color="#8E9BB3" />
+                      <Briefcase size={20} color="#8E9BB3" />
                     </View>
                     <View style={styles.jobTitleContainer}>
                       <Text style={styles.jobRole}>{item.role}</Text>
@@ -165,7 +164,7 @@ export default function JobsScreen() {
 
                   <View style={styles.jobFooter}>
                     <View style={styles.referrerInfo}>
-                      <Feather name="user" size={14} color="#6B7280" />
+                      <User size={14} color="#6B7280" />
                       <Text style={styles.referrerName}>{item.referrer}</Text>
                     </View>
                     <View style={[styles.statusPill, item.status === 'Email Sent' ? styles.statusSent : styles.statusPending]}>
@@ -313,7 +312,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
-    
+
     shadowColor: '#000',
     shadowOpacity: 0.02,
     shadowOffset: { width: 0, height: 2 },

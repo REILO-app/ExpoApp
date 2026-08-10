@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { ChevronLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -61,7 +61,7 @@ export default function AddReferralScreen() {
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Feather name="chevron-left" size={24} color="#FFFFFF" />
+            <ChevronLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Add Referral</Text>
           <View style={styles.placeholder} />
@@ -72,7 +72,7 @@ export default function AddReferralScreen() {
             <Text style={styles.label}>Full Name</Text>
             <TextInput style={styles.input} placeholder="e.g. Nitin Pansare" value={name} onChangeText={setName} />
           </View>
-          
+
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Company</Text>
             <TextInput style={styles.input} placeholder="e.g. Emerson" value={company} onChangeText={setCompany} />
@@ -96,8 +96,8 @@ export default function AddReferralScreen() {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Notes (Optional)</Text>
-            <TextInput 
-              style={[styles.input, styles.textArea]} 
+            <TextInput
+              style={[styles.input, styles.textArea]}
               placeholder="How do you know this person?"
               multiline
               numberOfLines={4}

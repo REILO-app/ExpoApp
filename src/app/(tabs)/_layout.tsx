@@ -1,5 +1,5 @@
 import { Tabs, usePathname, useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { LayoutGrid, Users, Briefcase, User, LucideIcon } from 'lucide-react-native';
 import { View, StyleSheet, Animated, TouchableOpacity, Dimensions } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,12 +13,12 @@ const TAB_SLOT = BAR_WIDTH / TAB_COUNT;
 // Center of circle within its tab slot
 const circleOffset = TAB_SLOT / 2 - CIRCLE_SIZE / 2;
 
-const TABS = [
-  { name: 'index',    route: '/',          icon: 'grid'      },
-  { name: 'referrals', route: '/referrals', icon: 'users'     },
-  { name: 'jobs',     route: '/jobs',       icon: 'briefcase' },
-  { name: 'profile',  route: '/profile',    icon: 'user'      },
-] as const;
+const TABS: Array<{ name: string; route: string; icon: LucideIcon }> = [
+  { name: 'index', route: '/', icon: LayoutGrid },
+  { name: 'referrals', route: '/referrals', icon: Users },
+  { name: 'jobs', route: '/jobs', icon: Briefcase },
+  { name: 'profile', route: '/profile', icon: User },
+];
 
 function getTabIndex(pathname: string): number {
   if (pathname === '/' || pathname === '/index') return 0;
@@ -29,9 +29,9 @@ function getTabIndex(pathname: string): number {
 }
 
 function CustomTabBar() {
-  const router   = useRouter();
+  const router = useRouter();
   const pathname = usePathname();
-  const insets   = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
 
   const activeIndex = getTabIndex(pathname);
   const slideX = useRef(new Animated.Value(activeIndex * TAB_SLOT + circleOffset)).current;
@@ -56,6 +56,7 @@ function CustomTabBar() {
         {/* Tab buttons */}
         {TABS.map((tab, idx) => {
           const focused = activeIndex === idx;
+          const IconComponent = tab.icon;
           return (
             <TouchableOpacity
               key={tab.name}
@@ -63,8 +64,7 @@ function CustomTabBar() {
               onPress={() => router.push(tab.route as any)}
               activeOpacity={0.85}
             >
-              <Feather
-                name={tab.icon as any}
+              <IconComponent
                 size={21}
                 color={focused ? '#161C33' : '#8E9BB3'}
               />
@@ -82,10 +82,10 @@ export default function TabLayout() {
       screenOptions={{ headerShown: false }}
       tabBar={() => <CustomTabBar />}
     >
-      <Tabs.Screen name="index"    />
+      <Tabs.Screen name="index" />
       <Tabs.Screen name="referrals" />
-      <Tabs.Screen name="jobs"     />
-      <Tabs.Screen name="profile"  />
+      <Tabs.Screen name="jobs" />
+      <Tabs.Screen name="profile" />
     </Tabs>
   );
 }

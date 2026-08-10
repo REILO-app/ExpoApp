@@ -11,7 +11,10 @@ import {
   ActivityIndicator,
   Alert
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import {
+  ChevronLeft, Send, Paperclip, FileText, X,
+  UploadCloud, AlertTriangle, Zap, RefreshCw
+} from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -74,7 +77,7 @@ export default function EmailDraftScreen() {
         if (rId) {
           referralData = await fetchReferralById(rId);
         }
-        
+
         const refDetails = {
           name: referralData.name || '',
           title: referralData.role || '',
@@ -221,29 +224,29 @@ Return the result as a JSON object matching this schema:
       // Fallback draft content
       setSubject(`Referral Request for ${currentJob.role} role at ${currentJob.company}`);
       setBody(
-        `Hi ${currentReferrer.name.split(' ')[0] || 'there'},\n\n` +
-        `I hope this message finds you well!\n\n` +
-        `I saw that ${currentJob.company} is currently hiring for a ${currentJob.role}${currentJob.location ? ` in ${currentJob.location}` : ''}. Given your experience there${currentReferrer.title ? ` as ${currentReferrer.title}` : ''}, I wanted to ask if you would be open to referring me for this position.\n\n` +
-        `I have attached my resume and the job link below for your convenience. I believe my background aligns well with the description and I would love the chance to apply.\n\n` +
-        `If you're comfortable, I'd really appreciate your referral. If not, no worries at all!\n\n` +
-        `Best regards,\n` +
-        `${user?.name || 'Candidate'}`
+        `Hi ${referrer.name},\n\nHope you're doing well! I'm reaching out because I saw an exciting opportunity for ${jobDetails.role} at ${jobDetails.company}.\n\nGiven your experience at ${jobDetails.company}, I would be incredibly grateful if you'd be open to referring me or sharing any insights about the role.\n\nBest regards,\n${user?.name || 'Applicant'}`
       );
     } finally {
       setGenerating(false);
     }
   };
 
+  // Direct Send Email
   const handleSend = async () => {
+    const emailRecipient = referrer.email?.trim();
+    if (!emailRecipient) {
+      Alert.alert('Missing Email', 'No email address found for this referrer. Please edit their contact details first.');
+      return;
+    }
+
     setSending(true);
+
     try {
-      const emailRecipient = referrer.email || `${referrer.name.toLowerCase().replace(/\s+/g, '')}@example.com`;
-
-      const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
-
+      const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001';
       let fetchOptions: RequestInit;
 
-      if (attachmentUri && attachmentName) {
+      if (attachmentUri) {
+        // Multi-part form data if attachment exists
         const formData = new FormData();
         formData.append('to', emailRecipient);
         formData.append('subject', subject);
@@ -252,14 +255,10 @@ Return the result as a JSON object matching this schema:
         formData.append('referralId', rId);
         formData.append('senderName', user?.name || '');
         formData.append('senderEmail', user?.email || '');
-        formData.append('senderPhone', '');
-        formData.append('senderLinkedin', '');
 
         if (Platform.OS === 'web' && attachmentFile) {
-          // Web: use the native File object directly
           formData.append('resume', attachmentFile);
         } else {
-          // iOS / Android: read the file as base64, convert to Blob
           const base64 = await FileSystem.readAsStringAsync(attachmentUri, {
             encoding: FileSystem.EncodingType.Base64,
           });
@@ -270,23 +269,18 @@ Return the result as a JSON object matching this schema:
           }
           const byteArray = new Uint8Array(byteNumbers);
           const blob = new Blob([byteArray], { type: attachmentMimeType || 'application/pdf' });
-          formData.append('resume', blob, attachmentName);
+          formData.append('resume', blob, attachmentName || 'resume.pdf');
         }
 
         fetchOptions = {
           method: 'POST',
-          headers: {
-            Accept: 'application/json',
-          },
+          headers: { Accept: 'application/json' },
           body: formData,
         };
       } else {
         fetchOptions = {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify({
             to: emailRecipient,
             subject,
@@ -295,28 +289,23 @@ Return the result as a JSON object matching this schema:
             referralId: rId,
             senderName: user?.name || '',
             senderEmail: user?.email || '',
-            senderPhone: '',
-            senderLinkedin: '',
           }),
         };
       }
 
       const response = await fetch(`${apiBaseUrl}/api/send-email`, fetchOptions);
-
       const data = await response.json();
 
       if (!response.ok || data.status === 'error') {
-        throw new Error(data.message || 'Server returned an error');
+        throw new Error(data.message || 'Server error sending email');
       }
 
-      Alert.alert(
-        'Email Sent! 🚀',
-        data.message || 'Your referral request email was sent successfully directly via backend!',
-        [{ text: 'OK', onPress: () => router.replace('/(tabs)/jobs') }]
-      );
+      Alert.alert('Email Sent! 🚀', 'Your referral request was sent successfully.', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
     } catch (error: any) {
       console.error('Error sending mail:', error);
-      Alert.alert('Sending Failed', error?.message || 'Could not send email directly from the backend.');
+      Alert.alert('Sending Failed', error?.message || 'Could not send email.');
     } finally {
       setSending(false);
     }
@@ -334,7 +323,7 @@ Return the result as a JSON object matching this schema:
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Feather name="chevron-left" size={24} color="#FFFFFF" />
+            <ChevronLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Review Draft</Text>
           <View style={styles.placeholder} />
@@ -350,42 +339,42 @@ Return the result as a JSON object matching this schema:
             {loadingInitial ? (
               <ActivityIndicator size="large" color="#6366F1" style={{ marginVertical: 20 }} />
             ) : (
-            <View style={styles.contextCard}>
-              <View style={styles.contextHeader}>
-                <Feather name="send" size={16} color="#6366F1" />
-                <Text style={styles.contextTitle}>Referral Target</Text>
+              <View style={styles.contextCard}>
+                <View style={styles.contextHeader}>
+                  <Send size={16} color="#6366F1" />
+                  <Text style={styles.contextTitle}>Referral Target</Text>
+                </View>
+                <Text style={styles.contextReferrer}>
+                  To: <Text style={styles.boldText}>{referrer.name}</Text> ({referrer.title || 'Contact'} at {referrer.company})
+                </Text>
+                <Text style={styles.contextJob}>
+                  For: <Text style={styles.boldText}>{jobDetails.role}</Text> @ {jobDetails.company}
+                </Text>
               </View>
-              <Text style={styles.contextReferrer}>
-                To: <Text style={styles.boldText}>{referrer.name}</Text> ({referrer.title || 'Contact'} at {referrer.company})
-              </Text>
-              <Text style={styles.contextJob}>
-                For: <Text style={styles.boldText}>{jobDetails.role}</Text> @ {jobDetails.company}
-              </Text>
-            </View>
             )}
 
             {/* Resume Attachment Card */}
             <View style={styles.attachmentCard}>
               <View style={styles.attachmentHeader}>
-                <Feather name="paperclip" size={16} color="#374151" style={{ marginRight: 6 }} />
+                <Paperclip size={16} color="#374151" style={{ marginRight: 6 }} />
                 <Text style={styles.attachmentTitle}>Resume Attachment</Text>
               </View>
 
               {attachmentName ? (
                 <View style={styles.fileRow}>
                   <View style={styles.fileInfo}>
-                    <Feather name="file-text" size={20} color="#6B7280" style={{ marginRight: 10 }} />
+                    <FileText size={20} color="#6B7280" style={{ marginRight: 10 }} />
                     <Text style={styles.fileName} numberOfLines={1}>
                       {attachmentName}
                     </Text>
                   </View>
                   <TouchableOpacity onPress={handleRemoveAttachment} style={styles.removeBtn}>
-                    <Feather name="x" size={18} color="#EF4444" />
+                    <X size={18} color="#EF4444" />
                   </TouchableOpacity>
                 </View>
               ) : (
                 <TouchableOpacity onPress={handlePickDocument} style={styles.uploadBtn} activeOpacity={0.8}>
-                  <Feather name="upload-cloud" size={18} color="#6B7280" style={{ marginRight: 8 }} />
+                  <UploadCloud size={18} color="#6B7280" style={{ marginRight: 8 }} />
                   <Text style={styles.uploadBtnText}>Upload Resume PDF</Text>
                 </TouchableOpacity>
               )}
@@ -396,21 +385,20 @@ Return the result as a JSON object matching this schema:
               styles.infoCard,
               rateLimited && styles.rateLimitedInfoCard
             ]}>
-              <Feather
-                name={rateLimited ? 'alert-triangle' : 'zap'}
-                size={20}
-                color={rateLimited ? '#DC2626' : '#059669'}
-                style={styles.infoIcon}
-              />
+              {rateLimited ? (
+                <AlertTriangle size={20} color="#DC2626" style={styles.infoIcon} />
+              ) : (
+                <Zap size={20} color="#059669" style={styles.infoIcon} />
+              )}
               <Text style={[
                 styles.infoText,
                 rateLimited && styles.rateLimitedInfoText
               ]}>
                 {generating
-                  ? 'Generating email using Gemini...'
+                  ? 'Generating email via AI...'
                   : rateLimited
-                    ? 'Daily generation limit of 5 emails reached. Please try again tomorrow.'
-                    : 'Email draft generated successfully via backend using Gemini.'
+                    ? 'Daily limit reached. Using template.'
+                    : 'Email draft generated successfully.'
                 }
               </Text>
             </View>
@@ -418,7 +406,7 @@ Return the result as a JSON object matching this schema:
             {generating ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#6366F1" />
-                <Text style={styles.loadingText}>Gemini is crafting your referral request...</Text>
+                <Text style={styles.loadingText}>AI is crafting your request...</Text>
               </View>
             ) : (
               <>
@@ -443,7 +431,6 @@ Return the result as a JSON object matching this schema:
                     multiline
                     placeholder="Enter email body"
                     placeholderTextColor="#9CA3AF"
-                    editable={!rateLimited}
                   />
                 </View>
 
@@ -453,7 +440,7 @@ Return the result as a JSON object matching this schema:
                     onPress={() => handleGenerateEmail(model)}
                     activeOpacity={0.8}
                   >
-                    <Feather name="refresh-cw" size={16} color="#6366F1" style={{ marginRight: 8 }} />
+                    <RefreshCw size={16} color="#6366F1" style={{ marginRight: 8 }} />
                     <Text style={styles.regenerateButtonText}>Regenerate Draft</Text>
                   </TouchableOpacity>
                 ) : null}
@@ -461,23 +448,22 @@ Return the result as a JSON object matching this schema:
                 <TouchableOpacity
                   style={[
                     styles.submitButton,
-                    (rateLimited || sending) && styles.submitButtonDisabled
+                    sending && styles.submitButtonDisabled
                   ]}
                   onPress={handleSend}
-                  disabled={rateLimited || sending}
+                  disabled={sending}
                 >
                   {sending ? (
                     <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
                     <>
-                      <Feather name="send" size={18} color="#FFFFFF" style={styles.submitIcon} />
+                      <Send size={18} color="#FFFFFF" style={styles.submitIcon} />
                       <Text style={styles.submitButtonText}>Send Referral Request</Text>
                     </>
                   )}
                 </TouchableOpacity>
               </>
             )}
-
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

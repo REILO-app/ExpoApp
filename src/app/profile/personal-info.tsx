@@ -1,12 +1,22 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { ChevronLeft, User, Briefcase, Phone, MapPin, Globe } from 'lucide-react-native';
+import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { BlurView } from 'expo-blur';
 import { useEffect, useState } from 'react';
 import { fetchUserProfile, updateUserProfile } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+
+function LinkedinIcon({ size = 18, color = '#9CA3AF', style }: { size?: number; color?: string; style?: any }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={style}>
+      <Path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <Path d="M2 9h4v12H2z" />
+      <Path d="M4 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+    </Svg>
+  );
+}
 
 export default function PersonalInfoScreen() {
   const router = useRouter();
@@ -93,14 +103,14 @@ export default function PersonalInfoScreen() {
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <BlurView intensity={20} tint="dark" style={styles.indigoGlow} />
-        <BlurView intensity={20} tint="dark" style={styles.emeraldGlow} />
+        <View style={styles.indigoGlow} />
+        <View style={styles.emeraldGlow} />
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Feather name="chevron-left" size={24} color="#FFFFFF" />
+            <ChevronLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.pageTitle}>Personal Info</Text>
           <View style={{ width: 24 }} />
@@ -111,7 +121,7 @@ export default function PersonalInfoScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Full Name</Text>
               <View style={styles.inputWrapper}>
-                <Feather name="user" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                <User size={18} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={name}
@@ -124,7 +134,7 @@ export default function PersonalInfoScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Role</Text>
               <View style={styles.inputWrapper}>
-                <Feather name="briefcase" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                <Briefcase size={18} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={role}
@@ -137,7 +147,7 @@ export default function PersonalInfoScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Phone Number</Text>
               <View style={styles.inputWrapper}>
-                <Feather name="phone" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                <Phone size={18} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={phone}
@@ -151,7 +161,7 @@ export default function PersonalInfoScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Location</Text>
               <View style={styles.inputWrapper}>
-                <Feather name="map-pin" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                <MapPin size={18} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={location}
@@ -164,7 +174,7 @@ export default function PersonalInfoScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Website</Text>
               <View style={styles.inputWrapper}>
-                <Feather name="globe" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                <Globe size={18} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={website}
@@ -178,7 +188,7 @@ export default function PersonalInfoScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>LinkedIn</Text>
               <View style={styles.inputWrapper}>
-                <Feather name="linkedin" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                <LinkedinIcon size={18} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   value={linkedin}

@@ -3,7 +3,10 @@ import {
   Animated, ScrollView, Dimensions, KeyboardAvoidingView,
   Platform, Alert, ActivityIndicator, Image,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import {
+  ChevronLeft, User, Mail, Phone, Briefcase, Building,
+  Lock, CheckCircle, Eye, EyeOff, ArrowRight, LucideIcon, LucideProps
+} from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -16,44 +19,50 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ─── Step metadata ────────────────────────────────────────────────────────────
 
-const STEPS = [
+const STEPS: Array<{
+  icon: LucideIcon;
+  iconColor: string;
+  iconBg: string;
+  label: string;
+  sub: string;
+}> = [
   {
-    icon: 'user' as const,
+    icon: User,
     iconColor: '#818CF8',
     iconBg: 'rgba(99,102,241,0.15)',
     label: "What's your name?",
     sub: 'Your name appears on your professional network card.',
   },
   {
-    icon: 'mail' as const,
+    icon: Mail,
     iconColor: '#34D399',
     iconBg: 'rgba(16,185,129,0.12)',
     label: 'How can we reach you?',
     sub: 'Used for updates and referral confirmations.',
   },
   {
-    icon: 'briefcase' as const,
+    icon: Briefcase,
     iconColor: '#FBBF24',
     iconBg: 'rgba(251,191,36,0.12)',
     label: "What's your profession?",
     sub: 'Tell us your role or primary field of expertise.',
   },
   {
-    icon: 'home' as const,
+    icon: Building,
     iconColor: '#F472B6',
     iconBg: 'rgba(244,114,182,0.12)',
     label: 'Where do you work?',
     sub: 'Your current company, university, or organization.',
   },
   {
-    icon: 'lock' as const,
+    icon: Lock,
     iconColor: '#818CF8',
     iconBg: 'rgba(99,102,241,0.15)',
     label: 'Secure your account',
     sub: 'Choose a strong password — at least 6 characters.',
   },
   {
-    icon: 'check-circle' as const,
+    icon: CheckCircle,
     iconColor: '#34D399',
     iconBg: 'rgba(16,185,129,0.15)',
     label: 'Almost there!',
@@ -64,21 +73,21 @@ const STEPS = [
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function SignupScreen() {
-  const router   = useRouter();
+  const router = useRouter();
   const { signUp } = useAuth();
 
-  const [step, setStep]           = useState(0);
-  const [name, setName]           = useState('');
-  const [email, setEmail]         = useState('');
-  const [phone, setPhone]         = useState('');
+  const [step, setStep] = useState(0);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [profession, setProfession] = useState('');
-  const [company, setCompany]     = useState('');
-  const [password, setPassword]   = useState('');
-  const [showPass, setShowPass]   = useState(false);
-  const [loading, setLoading]     = useState(false);
+  const [company, setCompany] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const scrollRef  = useRef<ScrollView>(null);
-  const shakeAnim  = useRef(new Animated.Value(0)).current;
+  const scrollRef = useRef<ScrollView>(null);
+  const shakeAnim = useRef(new Animated.Value(0)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
 
   // Track step changes for analytics & progress bar
@@ -105,14 +114,14 @@ export default function SignupScreen() {
 
   const validateStep = (): boolean => {
     const show = (msg: string) => { Alert.alert('Required', msg); shake(); };
-    if (step === 0 && !name.trim())        { show('Please enter your full name.'); return false; }
+    if (step === 0 && !name.trim()) { show('Please enter your full name.'); return false; }
     if (step === 1) {
       if (!email.trim()) { show('Please enter your email.'); return false; }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { show('Enter a valid email address.'); return false; }
       if (!phone.trim()) { show('Please enter your phone number.'); return false; }
     }
     if (step === 2 && !profession.trim()) { show('Please enter your profession.'); return false; }
-    if (step === 3 && !company.trim())    { show('Please enter your organization.'); return false; }
+    if (step === 3 && !company.trim()) { show('Please enter your organization.'); return false; }
     if (step === 4 && password.length < 6) { show('Password must be at least 6 characters.'); return false; }
     return true;
   };
@@ -171,7 +180,7 @@ export default function SignupScreen() {
         {/* Header row */}
         <View style={styles.headerRow}>
           <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-            <Feather name="chevron-left" size={24} color="#FFFFFF" />
+            <ChevronLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Create Account</Text>
           <View style={{ width: 40 }} />
@@ -204,7 +213,7 @@ export default function SignupScreen() {
                 <Text style={styles.cardTitle}>{STEPS[0].label}</Text>
                 <Text style={styles.cardSub}>{STEPS[0].sub}</Text>
                 <InputField
-                  icon="user" placeholder="Full Name"
+                  icon={User} placeholder="Full Name"
                   value={name} onChangeText={setName}
                 />
               </View>
@@ -216,8 +225,8 @@ export default function SignupScreen() {
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>{STEPS[1].label}</Text>
                 <Text style={styles.cardSub}>{STEPS[1].sub}</Text>
-                <InputField icon="mail" placeholder="Email address" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-                <InputField icon="phone" placeholder="Phone number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+                <InputField icon={Mail} placeholder="Email address" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+                <InputField icon={Phone} placeholder="Phone number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
               </View>
             </Animated.View>
 
@@ -227,7 +236,7 @@ export default function SignupScreen() {
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>{STEPS[2].label}</Text>
                 <Text style={styles.cardSub}>{STEPS[2].sub}</Text>
-                <InputField icon="briefcase" placeholder="e.g. Software Engineer, Designer" value={profession} onChangeText={setProfession} />
+                <InputField icon={Briefcase} placeholder="e.g. Software Engineer, Designer" value={profession} onChangeText={setProfession} />
               </View>
             </Animated.View>
 
@@ -237,7 +246,7 @@ export default function SignupScreen() {
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>{STEPS[3].label}</Text>
                 <Text style={styles.cardSub}>{STEPS[3].sub}</Text>
-                <InputField icon="home" placeholder="e.g. Google, MIT, Freelance" value={company} onChangeText={setCompany} />
+                <InputField icon={Building} placeholder="e.g. Google, MIT, Freelance" value={company} onChangeText={setCompany} />
               </View>
             </Animated.View>
 
@@ -248,12 +257,16 @@ export default function SignupScreen() {
                 <Text style={styles.cardTitle}>{STEPS[4].label}</Text>
                 <Text style={styles.cardSub}>{STEPS[4].sub}</Text>
                 <InputField
-                  icon="lock" placeholder="Password"
+                  icon={Lock} placeholder="Password"
                   value={password} onChangeText={setPassword}
                   secureTextEntry={!showPass}
                   rightElement={
                     <TouchableOpacity onPress={() => setShowPass(v => !v)}>
-                      <Feather name={showPass ? 'eye' : 'eye-off'} size={18} color="#475569" />
+                      {showPass ? (
+                        <Eye size={18} color="#475569" />
+                      ) : (
+                        <EyeOff size={18} color="#475569" />
+                      )}
                     </TouchableOpacity>
                   }
                 />
@@ -267,11 +280,11 @@ export default function SignupScreen() {
                 <Text style={styles.cardTitle}>{STEPS[5].label}</Text>
                 <Text style={styles.cardSub}>{STEPS[5].sub}</Text>
                 <View style={styles.reviewList}>
-                  <ReviewRow label="Name" value={name} icon="user" />
-                  <ReviewRow label="Email" value={email} icon="mail" />
-                  <ReviewRow label="Phone" value={phone} icon="phone" />
-                  <ReviewRow label="Profession" value={profession} icon="briefcase" />
-                  <ReviewRow label="Organization" value={company} icon="home" />
+                  <ReviewRow label="Name" value={name} icon={User} />
+                  <ReviewRow label="Email" value={email} icon={Mail} />
+                  <ReviewRow label="Phone" value={phone} icon={Phone} />
+                  <ReviewRow label="Profession" value={profession} icon={Briefcase} />
+                  <ReviewRow label="Organization" value={company} icon={Building} />
                 </View>
               </View>
             </Animated.View>
@@ -292,7 +305,7 @@ export default function SignupScreen() {
                   <Text style={styles.ctaBtnText}>
                     {step === STEPS.length - 1 ? 'Create Account' : 'Continue'}
                   </Text>
-                  {step < STEPS.length - 1 && <Feather name="arrow-right" size={20} color="#111827" />}
+                  {step < STEPS.length - 1 && <ArrowRight size={20} color="#111827" />}
                 </>
               )}
             </TouchableOpacity>
@@ -316,11 +329,12 @@ export default function SignupScreen() {
 
 function StepIllustration({ step, name }: { step: number; name?: string }) {
   const info = STEPS[step];
+  const IconComponent = info.icon;
   return (
     <View style={illStyles.container}>
       <View style={[illStyles.iconBg, { backgroundColor: info.iconBg }]}>
         <View style={illStyles.iconRing}>
-          <Feather name={info.icon} size={36} color={info.iconColor} />
+          <IconComponent size={36} color={info.iconColor} />
         </View>
       </View>
       {step === 5 && !!name && (
@@ -384,10 +398,10 @@ const illStyles = StyleSheet.create({
 // ─── Shared InputField ────────────────────────────────────────────────────────
 
 function InputField({
-  icon, placeholder, value, onChangeText,
+  icon: IconComponent, placeholder, value, onChangeText,
   keyboardType, autoCapitalize, secureTextEntry, rightElement,
 }: {
-  icon: React.ComponentProps<typeof Feather>['name'];
+  icon: LucideIcon;
   placeholder: string;
   value: string;
   onChangeText: (t: string) => void;
@@ -399,7 +413,7 @@ function InputField({
   const [focused, setFocused] = useState(false);
   return (
     <View style={[ifStyles.wrap, focused && ifStyles.wrapFocused]}>
-      <Feather name={icon} size={18} color={focused ? '#818CF8' : '#475569'} style={ifStyles.icon} />
+      <IconComponent size={18} color={focused ? '#818CF8' : '#475569'} style={ifStyles.icon} />
       <TextInput
         style={ifStyles.input}
         placeholder={placeholder}
@@ -440,11 +454,11 @@ const ifStyles = StyleSheet.create({
 
 // ─── Review Row ───────────────────────────────────────────────────────────────
 
-function ReviewRow({ label, value, icon }: { label: string; value: string; icon: React.ComponentProps<typeof Feather>['name'] }) {
+function ReviewRow({ label, value, icon: IconComponent }: { label: string; value: string; icon: LucideIcon }) {
   return (
     <View style={rrStyles.row}>
       <View style={rrStyles.iconBox}>
-        <Feather name={icon} size={14} color="#818CF8" />
+        <IconComponent size={14} color="#818CF8" />
       </View>
       <Text style={rrStyles.label}>{label}</Text>
       <Text style={rrStyles.value} numberOfLines={1}>{value}</Text>

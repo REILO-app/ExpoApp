@@ -1,10 +1,9 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { User, Camera, ChevronRight, Mail, Lock, Bell, LogOut, Trash2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { BlurView } from 'expo-blur';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ProfileScreen() {
@@ -26,8 +25,8 @@ export default function ProfileScreen() {
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <BlurView intensity={20} tint="dark" style={styles.indigoGlow} />
-        <BlurView intensity={20} tint="dark" style={styles.emeraldGlow} />
+        <View style={styles.indigoGlow} />
+        <View style={styles.emeraldGlow} />
       </View>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         {/* Header */}
@@ -39,10 +38,10 @@ export default function ProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <View style={styles.largeAvatarPlaceholder}>
-              <Feather name="user" size={40} color="#8E9BB3" />
+              <User size={40} color="#8E9BB3" />
             </View>
             <TouchableOpacity style={styles.editAvatarBtn}>
-              <Feather name="camera" size={14} color="#FFFFFF" />
+              <Camera size={14} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
           <Text style={styles.profileName}>{user?.name ?? 'User'}</Text>
@@ -56,17 +55,17 @@ export default function ProfileScreen() {
 
             <TouchableOpacity style={styles.settingItem} onPress={() => router.push('/profile/personal-info')}>
               <View style={styles.settingIconContainer}>
-                <Feather name="user" size={18} color="#4B5563" />
+                <User size={18} color="#4B5563" />
               </View>
               <Text style={styles.settingLabel}>Personal Information</Text>
-              <Feather name="chevron-right" size={20} color="#9CA3AF" />
+              <ChevronRight size={20} color="#9CA3AF" />
             </TouchableOpacity>
 
             <View style={styles.divider} />
 
             <View style={styles.settingItem}>
               <View style={styles.settingIconContainer}>
-                <Feather name="mail" size={18} color="#4B5563" />
+                <Mail size={18} color="#4B5563" />
               </View>
               <Text style={styles.settingLabel}>Email Address</Text>
               <Text style={styles.settingValue}>{user?.email ?? ''}</Text>
@@ -76,10 +75,10 @@ export default function ProfileScreen() {
 
             <TouchableOpacity style={styles.settingItem} onPress={() => router.push('/profile/change-password')}>
               <View style={styles.settingIconContainer}>
-                <Feather name="lock" size={18} color="#4B5563" />
+                <Lock size={18} color="#4B5563" />
               </View>
               <Text style={styles.settingLabel}>Change Password</Text>
-              <Feather name="chevron-right" size={20} color="#9CA3AF" />
+              <ChevronRight size={20} color="#9CA3AF" />
             </TouchableOpacity>
           </View>
 
@@ -88,7 +87,7 @@ export default function ProfileScreen() {
 
             <View style={styles.settingItem}>
               <View style={styles.settingIconContainer}>
-                <Feather name="bell" size={18} color="#4B5563" />
+                <Bell size={18} color="#4B5563" />
               </View>
               <Text style={styles.settingLabel}>Push Notifications</Text>
               <Switch
@@ -103,7 +102,7 @@ export default function ProfileScreen() {
           <View style={styles.settingsSection}>
             <TouchableOpacity style={styles.settingItem} onPress={handleSignOut}>
               <View style={[styles.settingIconContainer, { backgroundColor: '#FEE2E2' }]}>
-                <Feather name="log-out" size={18} color="#DC2626" />
+                <LogOut size={18} color="#DC2626" />
               </View>
               <Text style={[styles.settingLabel, { color: '#DC2626' }]}>Sign Out</Text>
             </TouchableOpacity>
@@ -112,7 +111,7 @@ export default function ProfileScreen() {
 
             <TouchableOpacity style={styles.settingItem}>
               <View style={[styles.settingIconContainer, { backgroundColor: '#FEE2E2' }]}>
-                <Feather name="trash-2" size={18} color="#DC2626" />
+                <Trash2 size={18} color="#DC2626" />
               </View>
               <Text style={[styles.settingLabel, { color: '#DC2626' }]}>Delete Account</Text>
             </TouchableOpacity>

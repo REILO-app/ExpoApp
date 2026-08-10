@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { ChevronLeft, Info, Zap } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -82,7 +82,7 @@ export default function AskReferralScreen() {
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Feather name="chevron-left" size={24} color="#FFFFFF" />
+            <ChevronLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Ask for Referral</Text>
           <View style={styles.placeholder} />
@@ -90,7 +90,7 @@ export default function AskReferralScreen() {
 
         <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
           <View style={styles.infoCard}>
-            <Feather name="info" size={20} color="#4F46E5" style={styles.infoIcon} />
+            <Info size={20} color="#4F46E5" style={styles.infoIcon} />
             <Text style={styles.infoText}>
               Provide the job details below. Our AI will automatically generate a highly personalised referral request email tailored for this contact.
             </Text>
@@ -142,7 +142,7 @@ export default function AskReferralScreen() {
             style={styles.submitButton}
             onPress={handleDraft}
           >
-            <Feather name="zap" size={18} color="#FFFFFF" style={styles.submitIcon} />
+            <Zap size={18} color="#FFFFFF" style={styles.submitIcon} />
             <Text style={styles.submitButtonText}>Draft Email with AI</Text>
           </TouchableOpacity>
         </ScrollView>

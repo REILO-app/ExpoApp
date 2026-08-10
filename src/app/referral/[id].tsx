@@ -1,11 +1,34 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Linking, Alert, Animated } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import {
+  ChevronLeft, Trash2, Mail, Phone, Briefcase,
+  User, MapPin, Clock, Send, CheckCircle, Info, LucideProps
+} from 'lucide-react-native';
+import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { BlurView } from 'expo-blur';
 import { useState, useEffect, useRef } from 'react';
 import { fetchReferralById, fetchJobsByReferralId, deleteReferral } from '../../services/api';
+
+function LinkedinIcon({ size = 18, color = '#9CA3AF', style }: { size?: number; color?: string; style?: any }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={style}>
+      <Path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <Path d="M2 9h4v12H2z" />
+      <Path d="M4 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+    </Svg>
+  );
+}
+
+const EVENT_ICON_MAP: Record<string, React.FC<LucideProps>> = {
+  clock: Clock,
+  mail: Mail,
+  send: Send,
+  'check-circle': CheckCircle,
+  info: Info,
+  user: User,
+  briefcase: Briefcase,
+};
 
 // Skeleton shimmer bone component
 const SkeletonBone = ({ width, height, borderRadius = 6, style, pulseAnim }: any) => (
@@ -242,17 +265,17 @@ export default function ReferralDetailScreen() {
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <BlurView intensity={20} tint="dark" style={styles.indigoGlow} />
-        <BlurView intensity={20} tint="dark" style={styles.emeraldGlow} />
+        <View style={styles.indigoGlow} />
+        <View style={styles.emeraldGlow} />
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         <View style={styles.topActionsRow}>
           <TouchableOpacity style={styles.actionButton} onPress={() => router.back()}>
-            <Feather name="chevron-left" size={24} color="#FFFFFF" />
+            <ChevronLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={handleDelete}>
-            <Feather name="trash-2" size={20} color="#EF4444" />
+            <Trash2 size={20} color="#EF4444" />
           </TouchableOpacity>
         </View>
 
@@ -292,13 +315,13 @@ export default function ReferralDetailScreen() {
               </View>
               <View style={styles.socialIcons}>
                 <TouchableOpacity style={styles.socialIcon} onPress={() => openSocialLink(linkedin)}>
-                  <Feather name="linkedin" size={16} color="#FFFFFF" />
+                  <LinkedinIcon size={16} color="#FFFFFF" />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.socialIcon} onPress={() => openSocialLink(`mailto:${email}`)}>
-                  <Feather name="mail" size={16} color="#FFFFFF" />
+                  <Mail size={16} color="#FFFFFF" />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.socialIcon} onPress={() => openSocialLink(`tel:${phone}`)}>
-                  <Feather name="phone" size={16} color="#FFFFFF" />
+                  <Phone size={16} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -327,7 +350,7 @@ export default function ReferralDetailScreen() {
 
                   {/* Company */}
                   <View style={styles.infoRow}>
-                    <Feather name="briefcase" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                    <Briefcase size={18} color="#8E9BB3" style={styles.infoIcon} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.infoLabel}>Company</Text>
                       {isEditing ? (
@@ -340,7 +363,7 @@ export default function ReferralDetailScreen() {
 
                   {/* Role */}
                   <View style={styles.infoRow}>
-                    <Feather name="user" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                    <User size={18} color="#8E9BB3" style={styles.infoIcon} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.infoLabel}>Role</Text>
                       {isEditing ? (
@@ -353,7 +376,7 @@ export default function ReferralDetailScreen() {
 
                   {/* Location */}
                   <View style={styles.infoRow}>
-                    <Feather name="map-pin" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                    <MapPin size={18} color="#8E9BB3" style={styles.infoIcon} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.infoLabel}>Location</Text>
                       {isEditing ? (
@@ -368,7 +391,7 @@ export default function ReferralDetailScreen() {
                   {isEditing && (
                     <>
                       <View style={styles.infoRow}>
-                        <Feather name="mail" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                        <Mail size={18} color="#8E9BB3" style={styles.infoIcon} />
                         <View style={{ flex: 1 }}>
                           <Text style={styles.infoLabel}>Email (Hidden on card when saved)</Text>
                           <TextInput
@@ -383,7 +406,7 @@ export default function ReferralDetailScreen() {
                       </View>
 
                       <View style={styles.infoRow}>
-                        <Feather name="phone" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                        <Phone size={18} color="#8E9BB3" style={styles.infoIcon} />
                         <View style={{ flex: 1 }}>
                           <Text style={styles.infoLabel}>Phone (Hidden on card when saved)</Text>
                           <TextInput
@@ -397,7 +420,7 @@ export default function ReferralDetailScreen() {
                       </View>
 
                       <View style={styles.infoRow}>
-                        <Feather name="linkedin" size={18} color="#8E9BB3" style={styles.infoIcon} />
+                        <LinkedinIcon size={18} color="#8E9BB3" style={styles.infoIcon} />
                         <View style={{ flex: 1 }}>
                           <Text style={styles.infoLabel}>LinkedIn Profile (Hidden on card when saved)</Text>
                           <TextInput
@@ -444,10 +467,11 @@ export default function ReferralDetailScreen() {
                     ) : (
                       referral.history.map((event: any, index: number) => {
                         const isLast = index === referral.history.length - 1;
+                        const EventIcon = EVENT_ICON_MAP[event.icon] || Clock;
                         return (
                           <View key={index} style={styles.historyItem}>
                             <View style={[styles.historyIconContainer, { backgroundColor: (event.color || '#6366F1') + '1A' }]}>
-                              <Feather name={(event.icon || 'clock') as any} size={12} color={event.color || '#6366F1'} />
+                              <EventIcon size={12} color={event.color || '#6366F1'} />
                             </View>
                             {!isLast && <View style={styles.historyLine} />}
                             <View style={styles.historyContent}>
@@ -471,7 +495,7 @@ export default function ReferralDetailScreen() {
                   </View>
                   {referralJobs.length === 0 ? (
                     <View style={{ paddingVertical: 16, alignItems: 'center' }}>
-                      <Feather name="briefcase" size={28} color="#D1D5DB" style={{ marginBottom: 8 }} />
+                      <Briefcase size={28} color="#D1D5DB" style={{ marginBottom: 8 }} />
                       <Text style={{ color: '#9CA3AF', fontSize: 14 }}>No jobs linked to this referrer yet</Text>
                     </View>
                   ) : (
@@ -486,7 +510,7 @@ export default function ReferralDetailScreen() {
                         activeOpacity={0.7}
                       >
                         <View style={[styles.jobIconContainer, { backgroundColor: (job.statusBg || '#EEF2FF') }]}>
-                          <Feather name="briefcase" size={16} color={job.statusColor || '#6366F1'} />
+                          <Briefcase size={16} color={job.statusColor || '#6366F1'} />
                         </View>
                         <View style={{ flex: 1 }}>
                           <Text style={styles.jobTitle}>{job.role}</Text>

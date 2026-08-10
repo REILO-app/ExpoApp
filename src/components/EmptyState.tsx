@@ -1,8 +1,16 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Users, Search, UserPlus, Briefcase, Plus, FolderOpen, LucideProps } from 'lucide-react-native';
+
+const ICON_MAP: Record<string, React.FC<LucideProps>> = {
+  users: Users,
+  search: Search,
+  'user-plus': UserPlus,
+  briefcase: Briefcase,
+  plus: Plus,
+};
 
 interface EmptyStateProps {
-  icon: React.ComponentProps<typeof Feather>['name'];
+  icon: string;
   title: string;
   subtitle: string;
   actionLabel?: string;
@@ -10,16 +18,18 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ icon, title, subtitle, actionLabel, onAction }: EmptyStateProps) {
+  const IconComponent = ICON_MAP[icon] || FolderOpen;
+
   return (
     <View style={styles.container}>
       <View style={styles.iconCircle}>
-        <Feather name={icon} size={32} color="#818CF8" />
+        <IconComponent size={32} color="#818CF8" />
       </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.subtitle}>{subtitle}</Text>
       {actionLabel && onAction && (
         <TouchableOpacity style={styles.button} onPress={onAction} activeOpacity={0.85}>
-          <Feather name="plus" size={18} color="#FFFFFF" />
+          <Plus size={18} color="#0F172A" />
           <Text style={styles.buttonText}>{actionLabel}</Text>
         </TouchableOpacity>
       )}

@@ -2,13 +2,23 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   ScrollView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import {
+  ChevronLeft, Link as LucideLink, X, Zap, CheckCircle, Briefcase, Building,
+  Hash, MapPin, Clock, FileText, Check, LucideIcon
+} from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { addJob } from '../services/api';
+
+const FIELD_ICON_MAP: Record<string, LucideIcon> = {
+  briefcase: Briefcase,
+  home: Building,
+  hash: Hash,
+  'map-pin': MapPin,
+  clock: Clock,
+};
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface JobFields {
@@ -100,15 +110,17 @@ async function extractJobFromUrl(url: string): Promise<Partial<JobFields>> {
 
   if (!html) throw new Error('Empty response');
 
-  // Try JSON-LD first (most reliable)
-  const fromLd = extractJsonLd(html);
-  if (fromLd.role) return fromLd;
+  const jsonLd = extractJsonLd(html);
+  const meta = extractMeta(html);
 
-  // Fallback to meta tags
-  const fromMeta = extractMeta(html);
-  if (fromMeta.role) return fromMeta;
-
-  throw new Error('Could not extract job details from this page');
+  return {
+    role: jsonLd.role || meta.role || '',
+    company: jsonLd.company || meta.company || '',
+    jd: jsonLd.jd || meta.jd || '',
+    location: jsonLd.location || '',
+    type: jsonLd.type || '',
+    jobId: jsonLd.jobId || '',
+  };
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -187,15 +199,15 @@ export default function AddJobScreen() {
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <BlurView intensity={15} tint="dark" style={styles.indigoGlow} />
-        <BlurView intensity={15} tint="dark" style={styles.emeraldGlow} />
+        <View style={styles.indigoGlow} />
+        <View style={styles.emeraldGlow} />
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Feather name="chevron-left" size={24} color="#FFFFFF" />
+            <ChevronLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.pageTitle}>Add Job</Text>
           <View style={{ width: 40 }} />
@@ -219,7 +231,7 @@ export default function AddJobScreen() {
 
               <View style={styles.urlRow}>
                 <View style={[styles.inputWrapper, { flex: 1 }]}>
-                  <Feather name="link" size={16} color="#9CA3AF" style={styles.inputIcon} />
+                  <LucideLink size={16} color="#9CA3AF" style={styles.inputIcon} />
                   <TextInput
                     style={styles.urlInput}
                     value={url}
@@ -232,7 +244,7 @@ export default function AddJobScreen() {
                   />
                   {url.length > 0 && (
                     <TouchableOpacity onPress={() => { setUrl(''); setExtracted(false); }}>
-                      <Feather name="x" size={16} color="#9CA3AF" />
+                      <X size={16} color="#9CA3AF" />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -248,7 +260,7 @@ export default function AddJobScreen() {
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
                   <>
-                    <Feather name="zap" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+                    <Zap size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
                     <Text style={styles.extractButtonText}>
                       {extracted ? 'Re-extract' : 'Extract Job Details'}
                     </Text>
@@ -258,7 +270,7 @@ export default function AddJobScreen() {
 
               {extracted && (
                 <View style={styles.successBadge}>
-                  <Feather name="check-circle" size={14} color="#059669" />
+                  <CheckCircle size={14} color="#059669" />
                   <Text style={styles.successText}>Details extracted — review and edit below</Text>
                 </View>
               )}
@@ -310,7 +322,7 @@ export default function AddJobScreen() {
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Job Description</Text>
                   <View style={[styles.inputWrapper, { alignItems: 'flex-start', minHeight: 140, paddingVertical: 12 }]}>
-                    <Feather name="file-text" size={16} color="#9CA3AF" style={[styles.inputIcon, { marginTop: 2 }]} />
+                    <FileText size={16} color="#9CA3AF" style={[styles.inputIcon, { marginTop: 2 }]} />
                     <TextInput
                       style={[styles.fieldInput, { flex: 1, height: undefined, textAlignVertical: 'top' }]}
                       value={fields.jd}
@@ -332,7 +344,7 @@ export default function AddJobScreen() {
         {extracted && (
           <View style={styles.bottomBar}>
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Feather name="check" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+              <Check size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
               <Text style={styles.saveButtonText}>Save Job</Text>
             </TouchableOpacity>
           </View>
@@ -349,11 +361,12 @@ function InputField({
   label: string; icon: string; value: string;
   onChange: (v: string) => void; placeholder: string;
 }) {
+  const IconComponent = FIELD_ICON_MAP[icon] || Briefcase;
   return (
     <View style={styles.inputGroup}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.inputWrapper}>
-        <Feather name={icon as any} size={16} color="#9CA3AF" style={styles.inputIcon} />
+        <IconComponent size={16} color="#9CA3AF" style={styles.inputIcon} />
         <TextInput
           style={styles.fieldInput}
           value={value}

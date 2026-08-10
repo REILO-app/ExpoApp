@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { ChevronLeft, CheckCircle, Mail } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -54,13 +54,17 @@ export default function ForgotPasswordScreen() {
         >
           {/* Back button */}
           <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <Feather name="chevron-left" size={24} color="#FFFFFF" />
+            <ChevronLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
 
           <View style={styles.content}>
             {/* Icon */}
             <View style={styles.iconBubble}>
-              <Feather name={sent ? 'check-circle' : 'mail'} size={28} color={sent ? '#34D399' : '#818CF8'} />
+              {sent ? (
+                <CheckCircle size={28} color="#34D399" />
+              ) : (
+                <Mail size={28} color="#818CF8" />
+              )}
             </View>
 
             <Text style={styles.title}>{sent ? 'Email Sent!' : 'Reset Password'}</Text>
@@ -74,7 +78,7 @@ export default function ForgotPasswordScreen() {
               <>
                 {/* Email input */}
                 <View style={[styles.inputWrapper, focused && styles.inputFocused]}>
-                  <Feather name="mail" size={18} color={focused ? '#818CF8' : '#4B5563'} style={styles.inputIcon} />
+                  <Mail size={18} color={focused ? '#818CF8' : '#4B5563'} style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
                     placeholder="your@email.com"

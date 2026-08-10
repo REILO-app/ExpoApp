@@ -1,10 +1,9 @@
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { User, Bell, Search, TrendingUp } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { BlurView } from 'expo-blur';
 import { fetchReferrals } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { EmptyState } from '../../components/EmptyState';
@@ -79,8 +78,8 @@ export default function DashboardScreen() {
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <BlurView intensity={20} tint="dark" style={styles.indigoGlow} />
-        <BlurView intensity={20} tint="dark" style={styles.emeraldGlow} />
+        <View style={styles.indigoGlow} />
+        <View style={styles.emeraldGlow} />
       </View>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
 
@@ -90,7 +89,7 @@ export default function DashboardScreen() {
           <View style={styles.header}>
             <View style={styles.userInfo}>
               <View style={styles.avatarPlaceholder}>
-                <Feather name="user" size={24} color="#8E9BB3" />
+                <User size={24} color="#8E9BB3" />
               </View>
               <View>
                 <Text style={styles.greeting}>Welcome back</Text>
@@ -98,14 +97,14 @@ export default function DashboardScreen() {
               </View>
             </View>
             <TouchableOpacity style={styles.bellIcon} onPress={() => router.push('/notifications')}>
-              <Feather name="bell" size={20} color="#FFFFFF" />
+              <Bell size={20} color="#FFFFFF" />
               <View style={styles.bellBadge} />
             </TouchableOpacity>
           </View>
 
           {/* Search */}
           <View style={styles.searchContainer}>
-            <Feather name="search" size={18} color="rgba(199, 210, 254, 0.6)" style={styles.searchIcon} />
+            <Search size={18} color="rgba(199, 210, 254, 0.6)" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
               placeholder="Find a referral..."
@@ -120,7 +119,7 @@ export default function DashboardScreen() {
             <View style={styles.statsHeader}>
               <Text style={styles.statsTitle}>Network Overview</Text>
               <View style={styles.statsBadge}>
-                <Feather name="trending-up" size={12} color="#059669" />
+                <TrendingUp size={12} color="#059669" />
                 <Text style={styles.statsBadgeText}>+12%</Text>
               </View>
             </View>
@@ -179,7 +178,7 @@ export default function DashboardScreen() {
               <TouchableOpacity style={styles.referralCard} onPress={() => router.push(`/referral/${item.id}`)}>
                 <View style={styles.avatarContainer}>
                   <View style={styles.referralAvatarPlaceholder}>
-                    <Feather name="user" size={20} color="#8E9BB3" />
+                    <User size={20} color="#8E9BB3" />
                   </View>
                   <View style={[styles.statusDot, { borderColor: '#FFFFFF', backgroundColor: item.dotColor }]} />
                 </View>
