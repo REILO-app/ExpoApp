@@ -214,16 +214,26 @@ Return the result as a JSON object matching this schema:
         throw new Error('JSON response from Gemini was missing subject or body fields');
       }
     } catch (error: any) {
-      console.error(error);
-      Alert.alert(
-        'Generation Failed',
-        error?.message || 'Failed to generate email draft using Gemini.'
-      );
+      console.error('Gemini draft error:', error);
+
+      const errStr = typeof error === 'string' ? error : (error?.message || '');
+      const isQuotaError = errStr.includes('429') || errStr.includes('quota') || errStr.includes('RESOURCE_EXHAUSTED');
+
+      if (isQuotaError) {
+        setRateLimited(true);
+      }
+
+      const alertTitle = isQuotaError ? 'Quota Exceeded' : 'Generation Failed';
+      const alertMsg = isQuotaError
+        ? 'You have reached your Gemini AI rate limit for now. A standard draft template has been loaded for you to edit.'
+        : 'Could not generate draft with AI. A standard template has been loaded instead.';
+
+      Alert.alert(alertTitle, alertMsg);
 
       // Fallback draft content
-      setSubject(`Referral Request for ${currentJob.role} role at ${currentJob.company}`);
+      setSubject(`Referral Request for ${currentJob.role || 'Role'} at ${currentJob.company || 'Company'}`);
       setBody(
-        `Hi ${referrer.name},\n\nHope you're doing well! I'm reaching out because I saw an exciting opportunity for ${jobDetails.role} at ${jobDetails.company}.\n\nGiven your experience at ${jobDetails.company}, I would be incredibly grateful if you'd be open to referring me or sharing any insights about the role.\n\nBest regards,\n${user?.name || 'Applicant'}`
+        `Hi ${referrer.name || 'there'},\n\nHope you're doing well! I'm reaching out because I saw an exciting opportunity for ${currentJob.role || 'a role'} at ${currentJob.company || 'your company'}.\n\nGiven your experience at ${currentJob.company || 'the company'}, I would be incredibly grateful if you'd be open to referring me or sharing any insights about the role.\n\nBest regards,\n${user?.name || 'Applicant'}`
       );
     } finally {
       setGenerating(false);
