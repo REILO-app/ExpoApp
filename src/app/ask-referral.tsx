@@ -50,7 +50,7 @@ export default function AskReferralScreen() {
           }
         }
 
-        await addJob({
+        const newJob = await addJob({
           company: companyValue || 'Untitled Company',
           role: roleValue || 'Untitled Role',
           jobId: '',
@@ -63,6 +63,12 @@ export default function AskReferralScreen() {
           statusColor: '#D97706',
           statusBg: '#FFFBEB',
         });
+
+        // Pass the newly created job's MongoDB ID so the email-draft screen
+        // can include Yes/No referral action buttons in the email.
+        if (newJob?.id) {
+          params.append('jobId', newJob.id);
+        }
       } catch (error) {
         console.error('Failed to save job from ask referral flow', error);
       }

@@ -20,7 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { GoogleGenAI } from '@google/genai';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { fetchReferralById } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -243,57 +243,57 @@ Return the result as a JSON object matching this schema:
 
     try {
       const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001';
-      let fetchOptions: RequestInit;
+
+      // Always send JSON — attach resume as base64 string.
+      // Using FormData/multipart crashes on Vercel serverless functions because
+      // they don't support streaming file uploads via multer.
+      let attachmentBase64: string | null = null;
 
       if (attachmentUri) {
-        // Multi-part form data if attachment exists
-        const formData = new FormData();
-        formData.append('to', emailRecipient);
-        formData.append('subject', subject);
-        formData.append('body', body);
-        formData.append('jobId', jobDetails.jobId || '1');
-        formData.append('referralId', rId);
-        formData.append('senderName', user?.name || '');
-        formData.append('senderEmail', user?.email || '');
-
         if (Platform.OS === 'web' && attachmentFile) {
-          formData.append('resume', attachmentFile);
+          // Web: read the File object as base64 via FileReader
+          attachmentBase64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const result = reader.result as string;
+              // result is "data:<mime>;base64,<data>" — strip the prefix
+              resolve(result.split(',')[1]);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(attachmentFile);
+          });
         } else {
-          const base64 = await FileSystem.readAsStringAsync(attachmentUri, {
+          // Native (iOS/Android): expo-file-system reads straight to base64
+          attachmentBase64 = await FileSystem.readAsStringAsync(attachmentUri, {
             encoding: FileSystem.EncodingType.Base64,
           });
-          const byteCharacters = atob(base64);
-          const byteNumbers = new Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: attachmentMimeType || 'application/pdf' });
-          formData.append('resume', blob, attachmentName || 'resume.pdf');
         }
-
-        fetchOptions = {
-          method: 'POST',
-          headers: { Accept: 'application/json' },
-          body: formData,
-        };
-      } else {
-        fetchOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({
-            to: emailRecipient,
-            subject,
-            body,
-            jobId: jobDetails.jobId || '1',
-            referralId: rId,
-            senderName: user?.name || '',
-            senderEmail: user?.email || '',
-          }),
-        };
       }
 
-      const response = await fetch(`${apiBaseUrl}/api/send-email`, fetchOptions);
+      const payload: Record<string, any> = {
+        to: emailRecipient,
+        subject,
+        body,
+        // Only include jobId if a real one exists — '1' is not a valid MongoDB ObjectId
+        // and causes a CastError on the backend when creating referral tokens.
+        ...(jobDetails.jobId ? { jobId: jobDetails.jobId } : {}),
+        referralId: rId,
+        senderName: user?.name || '',
+        senderEmail: user?.email || '',
+      };
+
+      if (attachmentBase64) {
+        payload.attachmentBase64 = attachmentBase64;
+        payload.attachmentFilename = attachmentName || 'resume.pdf';
+        payload.attachmentMimeType = attachmentMimeType || 'application/pdf';
+      }
+
+      const response = await fetch(`${apiBaseUrl}/api/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
       const data = await response.json();
 
       if (!response.ok || data.status === 'error') {
@@ -301,7 +301,7 @@ Return the result as a JSON object matching this schema:
       }
 
       Alert.alert('Email Sent! 🚀', 'Your referral request was sent successfully.', [
-        { text: 'OK', onPress: () => router.back() }
+        { text: 'OK', onPress: () => router.replace('/(tabs)/jobs') }
       ]);
     } catch (error: any) {
       console.error('Error sending mail:', error);
