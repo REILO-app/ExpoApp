@@ -168,8 +168,7 @@ TARGET JOB DETAILS:
 - Role / Title: ${currentJob.role}
 - Company: ${currentJob.company}
 ${currentJob.location ? `- Location: ${currentJob.location}` : ''}
-${currentJob.jobId ? `- Job ID: ${currentJob.jobId}` : ''}
-${currentJob.link ? `- Job URL: ${currentJob.link}` : ''}
+${currentJob.link ? `- Job URL / Portal ID: ${currentJob.link}` : ''}
 ${currentJob.jd ? `- Job Description:\n${currentJob.jd}` : ''}
 
 INSTRUCTIONS:
