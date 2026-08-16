@@ -1,7 +1,7 @@
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  Animated, ScrollView, Dimensions, KeyboardAvoidingView,
-  Platform, Alert, ActivityIndicator, Image,
+  Animated, ScrollView, Dimensions,
+  Alert, ActivityIndicator, Image,
 } from 'react-native';
 import {
   ChevronLeft, User, Mail, Phone, Briefcase, Building,
@@ -192,11 +192,6 @@ export default function SignupScreen() {
         </View>
         <Text style={styles.stepLabel}>Step {step + 1} of {STEPS.length}</Text>
 
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 0}
-        >
           {/* Horizontal page scroller */}
           <ScrollView
             ref={scrollRef}
@@ -320,7 +315,6 @@ export default function SignupScreen() {
               </View>
             )}
           </View>
-        </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
   );
