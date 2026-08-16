@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Linking, Alert, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Linking, Alert, Animated, Image } from 'react-native';
 import {
   ChevronLeft, Trash2, Mail, Phone, Briefcase,
   User, MapPin, Clock, Send, CheckCircle, Info, LucideProps
@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect, useRef } from 'react';
-import { fetchReferralById, fetchJobsByReferralId, deleteReferral } from '../../services/api';
+import { fetchReferralById, fetchJobsByReferralId, deleteReferral, updateReferral } from '../../services/api';
 
 function LinkedinIcon({ size = 18, color = '#9CA3AF', style }: { size?: number; color?: string; style?: any }) {
   return (
@@ -202,18 +202,34 @@ export default function ReferralDetailScreen() {
   const [tempLinkedin, setTempLinkedin] = useState(linkedin);
   const [tempNotes, setTempNotes] = useState(notes);
 
-  const handleEditToggle = () => {
+  const handleEditToggle = async () => {
     if (isEditing) {
-      // Save changes
-      setName(tempName);
-      setCompany(tempCompany);
-      setRole(tempRole);
-      setLocation(tempLocation);
-      setEmail(tempEmail);
-      setPhone(tempPhone);
-      setLinkedin(tempLinkedin);
-      setNotes(tempNotes);
-      setIsEditing(false);
+      try {
+        // Save changes to database
+        const updated = await updateReferral(id as string, {
+          name: tempName,
+          company: tempCompany,
+          role: tempRole,
+          location: tempLocation,
+          email: tempEmail,
+          phone: tempPhone,
+          linkedin: tempLinkedin,
+          notes: tempNotes,
+        });
+
+        setName(updated.name || tempName);
+        setCompany(updated.company || tempCompany);
+        setRole(updated.role || tempRole);
+        setLocation(updated.location || tempLocation);
+        setEmail(updated.email || tempEmail);
+        setPhone(updated.phone || tempPhone);
+        setLinkedin(updated.linkedin || tempLinkedin);
+        setNotes(updated.notes || tempNotes);
+        setIsEditing(false);
+      } catch (error) {
+        console.error('Failed to update referral', error);
+        Alert.alert('Error', 'Failed to save changes. Make sure the API server is running.');
+      }
     } else {
       // Enter edit mode
       setTempName(name);
@@ -289,7 +305,9 @@ export default function ReferralDetailScreen() {
           <>
             {/* Header Profile */}
             <View style={styles.profileHeader}>
-              <View style={styles.largeAvatarPlaceholder} />
+              <View style={styles.largeAvatarPlaceholder}>
+                <Image source={{ uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Referral')}&background=random&color=fff` }} style={{ width: '100%', height: '100%', borderRadius: 50 }} />
+              </View>
               {isEditing ? (
                 <TextInput
                   style={styles.editTitleInput}

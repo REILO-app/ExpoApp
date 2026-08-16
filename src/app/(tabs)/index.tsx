@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, FlatList, ActivityIndicator, Image } from 'react-native';
 import { User, Bell, Search, TrendingUp } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -89,7 +89,7 @@ export default function DashboardScreen() {
           <View style={styles.header}>
             <View style={styles.userInfo}>
               <View style={styles.avatarPlaceholder}>
-                <User size={24} color="#8E9BB3" />
+                <Image source={{ uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=random&color=fff` }} style={{ width: '100%', height: '100%', borderRadius: 24 }} />
               </View>
               <View>
                 <Text style={styles.greeting}>Welcome back</Text>
@@ -118,10 +118,10 @@ export default function DashboardScreen() {
           <View style={styles.statsCard}>
             <View style={styles.statsHeader}>
               <Text style={styles.statsTitle}>Network Overview</Text>
-              <View style={styles.statsBadge}>
+              {/* <View style={styles.statsBadge}>
                 <TrendingUp size={12} color="#059669" />
                 <Text style={styles.statsBadgeText}>+12%</Text>
-              </View>
+              </View> */}
             </View>
 
             <View style={styles.statsRowWrapper}>
@@ -178,7 +178,7 @@ export default function DashboardScreen() {
               <TouchableOpacity style={styles.referralCard} onPress={() => router.push(`/referral/${item.id}`)}>
                 <View style={styles.avatarContainer}>
                   <View style={styles.referralAvatarPlaceholder}>
-                    <User size={20} color="#8E9BB3" />
+                    <Image source={{ uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'Referral')}&background=random&color=fff` }} style={{ width: '100%', height: '100%', borderRadius: 24 }} />
                   </View>
                   <View style={[styles.statusDot, { borderColor: '#FFFFFF', backgroundColor: item.dotColor }]} />
                 </View>

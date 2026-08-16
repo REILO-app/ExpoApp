@@ -15,7 +15,7 @@ export default function AddReferralScreen() {
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
-
+  const [location, setLocation] = useState('');
   const handleSubmit = async () => {
     if (!name || !company || !role || !email) return;
     setLoading(true);
@@ -26,6 +26,7 @@ export default function AddReferralScreen() {
         role,
         linkedin,
         email,
+        location,
         notes,
         status: 'Pending',
         time: 'Just now',
@@ -71,6 +72,11 @@ export default function AddReferralScreen() {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Full Name</Text>
             <TextInput style={styles.input} placeholder="e.g. Nitin Pansare" value={name} onChangeText={setName} />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Location</Text>
+            <TextInput style={styles.input} placeholder="e.g. Dublin, Ireland" value={location} onChangeText={setLocation} />
           </View>
 
           <View style={styles.inputGroup}>

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Image } from 'react-native';
 import { User, Camera, ChevronRight, Mail, Lock, Bell, LogOut, Trash2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -38,7 +38,7 @@ export default function ProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <View style={styles.largeAvatarPlaceholder}>
-              <User size={40} color="#8E9BB3" />
+              <Image source={{ uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=random&color=fff` }} style={{ width: '100%', height: '100%', borderRadius: 50 }} />
             </View>
             <TouchableOpacity style={styles.editAvatarBtn}>
               <Camera size={14} color="#FFFFFF" />
@@ -63,13 +63,14 @@ export default function ProfileScreen() {
 
             <View style={styles.divider} />
 
-            <View style={styles.settingItem}>
+            <TouchableOpacity style={styles.settingItem} onPress={() => router.push('/profile/change-email')}>
               <View style={styles.settingIconContainer}>
                 <Mail size={18} color="#4B5563" />
               </View>
               <Text style={styles.settingLabel}>Email Address</Text>
-              <Text style={styles.settingValue}>{user?.email ?? ''}</Text>
-            </View>
+
+              <ChevronRight size={20} color="#9CA3AF" />
+            </TouchableOpacity>
 
             <View style={styles.divider} />
 

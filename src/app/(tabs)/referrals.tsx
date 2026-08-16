@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { PlusCircle, Search, Menu, User } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -136,7 +136,7 @@ export default function ReferralsScreen() {
               <TouchableOpacity style={styles.referralCard} onPress={() => router.push(`/referral/${item.id}`)}>
                 <View style={styles.avatarContainer}>
                   <View style={styles.referralAvatarPlaceholder}>
-                    <User size={20} color="#8E9BB3" />
+                    <Image source={{ uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'Referral')}&background=random&color=fff` }} style={{ width: '100%', height: '100%', borderRadius: 24 }} />
                   </View>
                   <View style={[styles.statusDot, { borderColor: '#FFFFFF', backgroundColor: item.dotColor || '#000' }]} />
                 </View>
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 14,
-
+    marginTop: 10,
     borderWidth: 1,
     borderColor: '#F1F5F9',
     shadowColor: '#000',

@@ -111,6 +111,18 @@ export const deleteReferral = async (id: string) => {
   return res.json();
 };
 
+export const updateReferral = async (id: string, referralData: any) => {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${API_URL}/api/referrals/${id}`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(referralData),
+  });
+  if (!res.ok) throw new Error('Failed to update referral');
+  return res.json();
+};
+
+
 export const addJob = async (jobData: any) => {
   const headers = await getAuthHeaders();
   const res = await fetch(`${API_URL}/api/jobs`, {

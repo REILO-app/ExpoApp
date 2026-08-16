@@ -3,6 +3,10 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { AuthProvider, useAuth } from '../context/AuthContext';
+import * as SplashScreen from 'expo-splash-screen';
+
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync();
 
 // ─── Auth guard ───────────────────────────────────────────────────────────────
 // Redirects unauthenticated users to /login and authenticated users away from it.
@@ -27,14 +31,13 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       // Logged in but on auth screens → go to app
       router.replace('/(tabs)');
     }
+
+    // Hide splash screen once we know the auth state
+    SplashScreen.hideAsync();
   }, [isAuthenticated, loading, rootSegment]);
 
   if (loading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#0F172A', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color="#6366F1" size="large" />
-      </View>
-    );
+    return null;
   }
 
   return <>{children}</>;
