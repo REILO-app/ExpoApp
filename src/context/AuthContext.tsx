@@ -37,6 +37,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, profile: SignUpProfile) => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -154,6 +155,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const deleteAccount = async () => {
+    const firebaseUser = auth.currentUser;
+    if (!firebaseUser) throw new Error('Not authenticated');
+    const idToken = await firebaseUser.getIdToken();
+
+    let res: Response;
+    try {
+      res = await fetch(`${API_URL}/api/auth/me`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`,
+        },
+      });
+    } catch (networkErr) {
+      console.error('Delete account network error:', networkErr);
+      throw new Error('Cannot reach the server. Make sure the backend is running.');
+    }
+
+    if (!res.ok) {
+      let message = 'Failed to delete account';
+      try {
+        const data = await res.json();
+        message = data.error || message;
+      } catch {
+        // response wasn't JSON
+      }
+      console.error('Delete account API error:', res.status, message);
+      throw new Error(message);
+    }
+
+    // Backend deleted everything — sign out Firebase locally
+    try {
+      await firebaseSignOut(auth);
+    } catch {
+      // Firebase session may already be invalidated server-side
+    }
+    setUser(null);
+  };
+
   const resetPassword = async (email: string) => {
     try {
       await sendPasswordResetEmail(auth, email);
@@ -170,7 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, resetPassword, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, deleteAccount, resetPassword, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

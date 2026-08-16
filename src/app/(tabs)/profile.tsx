@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Image, Alert } from 'react-native';
 import { User, Camera, ChevronRight, Mail, Lock, Bell, LogOut, Trash2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,12 +8,46 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { signOut, user } = useAuth();
+  const { signOut, deleteAccount, user } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const handleSignOut = async () => {
     await signOut();
     // AuthGuard in _layout.tsx will redirect to /login automatically
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'This will permanently delete your account and all your data including referrals, jobs, and notifications. This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Are you sure?',
+              'This is your last chance. All your data will be permanently deleted.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete Forever',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await deleteAccount();
+                    } catch (err: any) {
+                      Alert.alert('Error', err.message || 'Failed to delete account');
+                    }
+                  },
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -110,7 +144,7 @@ export default function ProfileScreen() {
 
             <View style={styles.divider} />
 
-            <TouchableOpacity style={styles.settingItem}>
+            <TouchableOpacity style={styles.settingItem} onPress={handleDeleteAccount}>
               <View style={[styles.settingIconContainer, { backgroundColor: '#FEE2E2' }]}>
                 <Trash2 size={18} color="#DC2626" />
               </View>
