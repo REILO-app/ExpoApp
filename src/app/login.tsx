@@ -82,14 +82,7 @@ export default function LoginScreen() {
       <View style={[styles.glow, { bottom: 100, left: -60, backgroundColor: 'rgba(16,185,129,0.08)' }]} />
 
       <SafeAreaView style={styles.safeArea}>
-        {/* Header row */}
-        <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <ChevronLeft size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Welcome Back</Text>
-          <View style={{ width: 40 }} />
-        </View>
+
 
         <KeyboardAvoidingView
           style={{ flex: 1 }}

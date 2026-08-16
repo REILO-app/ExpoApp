@@ -133,8 +133,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, password: string, profile: SignUpProfile) => {
     try {
       pendingProfileRef.current = profile;
-      await createUserWithEmailAndPassword(auth, email, password);
-      // onAuthStateChanged handles backend sync and setUser
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Explicitly sync profile to backend immediately after signup
+      try {
+        const userData = await syncUserToBackend(userCredential.user, profile);
+        setUser(userData);
+        pendingProfileRef.current = null; // Clear since we've already synced
+      } catch (syncErr) {
+        console.error('Initial sync after signup failed, onAuthStateChanged will retry:', syncErr);
+        // onAuthStateChanged will retry with the ref as a fallback
+      }
     } catch (err: any) {
       pendingProfileRef.current = null;
       throw new Error(err.message || 'Signup failed');

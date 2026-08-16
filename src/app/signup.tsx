@@ -195,6 +195,7 @@ export default function SignupScreen() {
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 0}
         >
           {/* Horizontal page scroller */}
           <ScrollView
