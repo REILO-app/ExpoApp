@@ -21,7 +21,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { GoogleGenAI } from '@google/genai';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
-import { fetchReferralById } from '../services/api';
+import { fetchReferralById, API_URL } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 // Referrer Details Interface
@@ -251,7 +251,7 @@ Return the result as a JSON object matching this schema:
     setSending(true);
 
     try {
-      const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiBaseUrl = API_URL;
 
       // Always send JSON — attach resume as base64 string.
       // Using FormData/multipart crashes on Vercel serverless functions because
